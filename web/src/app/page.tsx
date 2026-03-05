@@ -1,6 +1,6 @@
 export default function Home() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="space-y-2">
         <h1 className="text-balance text-3xl font-semibold tracking-tight">
           Sprint 1 baseline is live.
