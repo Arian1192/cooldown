@@ -2,33 +2,44 @@
 
 :root {
   /*
-    Design tokens (baseline)
-    - Keep these as CSS variables so we can evolve brand + theming without churn.
+    Design tokens (minimalistic but urban)
+    References: djmag.com + tagmag.es
+
+    Notes:
+    - Keep tokens as CSS vars to avoid churn.
+    - Use mostly-neutral palette with a single loud accent.
   */
-  --background: 0 0% 100%;
-  --foreground: 222 47% 11%;
+  --background: 0 0% 98%;
+  --foreground: 222 25% 10%;
 
   --surface: 0 0% 100%;
-  --muted: 215 16% 47%;
-  --border: 214 32% 91%;
+  --muted: 222 10% 42%;
+  --border: 222 12% 88%;
 
-  --accent: 268 85% 55%;
+  /* Loud accent (urban highlight) */
+  --accent: 350 88% 52%;
   --accent-foreground: 0 0% 100%;
 
-  --radius: 12px;
+  /* Optional secondary accent for subtle UI cues */
+  --accent-2: 195 95% 45%;
+
+  /* Spacing + radius */
+  --radius: 14px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: 222 47% 7%;
-    --foreground: 210 40% 98%;
+    --background: 222 30% 6%;
+    --foreground: 0 0% 98%;
 
-    --surface: 222 47% 9%;
-    --muted: 215 20% 70%;
-    --border: 217 19% 18%;
+    --surface: 222 28% 9%;
+    --muted: 220 12% 72%;
+    --border: 222 12% 20%;
 
-    --accent: 268 85% 60%;
+    --accent: 350 88% 58%;
     --accent-foreground: 0 0% 100%;
+
+    --accent-2: 195 95% 55%;
   }
 }
 
@@ -43,6 +54,7 @@
   --color-border: hsl(var(--border));
   --color-accent: hsl(var(--accent));
   --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-accent-2: hsl(var(--accent-2));
 
   --radius-xl: var(--radius);
 }
@@ -55,4 +67,20 @@ body {
 body {
   background: hsl(var(--background));
   color: hsl(var(--foreground));
+  font-size: 16px;
+  line-height: 1.6;
+  text-rendering: geometricPrecision;
+}
+
+/* Headings hierarchy (tight + editorial) */
+h1 {
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  letter-spacing: -0.015em;
+}
+
+h3 {
+  letter-spacing: -0.01em;
 }
