@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Barlow_Condensed, DM_Sans } from "next/font/google";
 
 import "./globals.css";
+import { Analytics } from "@/components/Analytics";
 import { SiteShell } from "@/components/SiteShell";
 import { env } from "@/env";
 
@@ -45,6 +46,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`${barlow.variable} ${dmSans.variable} antialiased`}>
+        <Analytics />
         <SiteShell>{children}</SiteShell>
       </body>
     </html>
