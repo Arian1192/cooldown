@@ -3,7 +3,7 @@ import Image from "next/image";
 import { cn } from "@/lib/cn";
 
 /**
- * Base card (kept backward-compatible).
+ * Base card – flat, editorial, no rounded corners.
  */
 export function Card({
   className,
@@ -12,7 +12,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-xl border border-border/70 bg-surface p-3 shadow-sm",
+        "border border-border bg-surface",
         className,
       )}
       {...props}
@@ -30,7 +30,7 @@ export function CardInteractive({
   return (
     <Card
       className={cn(
-        "group transition-all hover:-translate-y-0.5 hover:border-foreground/15 hover:shadow-md",
+        "group transition-colors hover:border-accent/40",
         className,
       )}
       {...props}
@@ -61,12 +61,12 @@ export function CardMedia({
           alt={imageAlt}
           width={image.width}
           height={image.height}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
         />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent" />
 
         {category ? (
-          <div className="absolute left-3 top-3">
+          <div className="absolute left-0 top-0">
             <CardChip>{category}</CardChip>
           </div>
         ) : null}
@@ -84,7 +84,7 @@ export function CardChip({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full bg-accent px-2 py-1 text-[11px] font-semibold uppercase tracking-widest text-accent-foreground shadow-sm",
+        "inline-flex items-center bg-accent px-2 py-1 font-display text-[10px] font-bold uppercase tracking-[0.2em] text-accent-foreground",
         className,
       )}
       {...props}
@@ -99,7 +99,7 @@ export function CardTitle({
   return (
     <h3
       className={cn(
-        "text-pretty text-[15px] font-semibold leading-snug tracking-tight",
+        "font-display text-[17px] font-bold uppercase leading-tight tracking-tight",
         className,
       )}
       {...props}
@@ -112,6 +112,6 @@ export function CardCaption({
   ...props
 }: React.ComponentPropsWithoutRef<"p">) {
   return (
-    <p className={cn("mt-1 text-sm text-muted", className)} {...props} />
+    <p className={cn("mt-1 font-display text-[10px] font-bold uppercase tracking-[0.16em] text-muted", className)} {...props} />
   );
 }

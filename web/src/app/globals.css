@@ -2,50 +2,31 @@
 
 :root {
   /*
-    Design tokens (minimalistic but urban)
-    References: djmag.com + tagmag.es
-
-    Notes:
-    - Keep tokens as CSS vars to avoid churn.
-    - Use mostly-neutral palette with a single loud accent.
+    Club-culture editorial brand – permanently dark identity.
+    Acid yellow accent, sharp corners, condensed display type.
   */
-  --background: 0 0% 98%;
-  --foreground: 222 25% 10%;
+  --background: 0 0% 5%;
+  --foreground: 0 0% 96%;
 
-  --surface: 0 0% 100%;
-  --muted: 222 10% 42%;
-  --border: 222 12% 88%;
+  --surface: 0 0% 9%;
+  --muted: 0 0% 50%;
+  --border: 0 0% 16%;
 
-  /* Loud accent (urban highlight) */
-  --accent: 350 88% 52%;
-  --accent-foreground: 0 0% 100%;
+  /* Acid yellow-green – chartreuse / rave culture */
+  --accent: 76 100% 50%;
+  --accent-foreground: 0 0% 5%;
 
-  /* Optional secondary accent for subtle UI cues */
-  --accent-2: 195 95% 45%;
+  /* Hot red – urgent / secondary hit */
+  --accent-2: 350 88% 56%;
 
-  /* Spacing + radius */
-  --radius: 14px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: 222 30% 6%;
-    --foreground: 0 0% 98%;
-
-    --surface: 222 28% 9%;
-    --muted: 220 12% 72%;
-    --border: 222 12% 20%;
-
-    --accent: 350 88% 58%;
-    --accent-foreground: 0 0% 100%;
-
-    --accent-2: 195 95% 55%;
-  }
+  /* Flat editorial – no bubble corners */
+  --radius: 2px;
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-barlow);
+  --font-sans: var(--font-dm-sans);
+  --font-mono: monospace;
 
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -72,15 +53,6 @@ body {
   text-rendering: geometricPrecision;
 }
 
-/* Headings hierarchy (tight + editorial) */
-h1 {
-  letter-spacing: -0.02em;
-}
-
-h2 {
-  letter-spacing: -0.015em;
-}
-
-h3 {
-  letter-spacing: -0.01em;
-}
+h1 { letter-spacing: -0.03em; }
+h2 { letter-spacing: -0.02em; }
+h3 { letter-spacing: -0.01em; }

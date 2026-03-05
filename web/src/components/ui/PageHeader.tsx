@@ -10,12 +10,12 @@ export function PageHeader({
   className?: string;
 }) {
   return (
-    <header className={cn("space-y-1.5", className)}>
-      <h1 className="text-balance text-[28px] font-semibold leading-tight tracking-tight">
+    <header className={cn("mb-8 border-b border-border pb-6", className)}>
+      <h1 className="font-display text-[clamp(2.6rem,6vw,5.5rem)] font-black uppercase leading-none tracking-[-0.03em]">
         {title}
       </h1>
       {caption ? (
-        <p className="max-w-[70ch] text-sm leading-relaxed text-muted">
+        <p className="mt-3 max-w-[70ch] text-sm leading-relaxed text-muted">
           {caption}
         </p>
       ) : null}
