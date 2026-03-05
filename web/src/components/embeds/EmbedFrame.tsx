@@ -8,6 +8,7 @@ export function EmbedFrame({
   className,
   allow,
   sandbox,
+  rounded = false,
 }: {
   title: string;
   src: string;
@@ -18,11 +19,14 @@ export function EmbedFrame({
   className?: string;
   allow?: string;
   sandbox?: string;
+  /** Allow rounded corners for embed players (overrides the flat design default) */
+  rounded?: boolean;
 }) {
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-xl border border-border/60 bg-background",
+        "overflow-hidden border border-border",
+        rounded && "rounded-xl",
         className,
       )}
       style={{ aspectRatio: height ? undefined : aspect, height }}

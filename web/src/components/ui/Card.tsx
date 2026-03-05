@@ -55,7 +55,7 @@ export function CardMedia({
 }) {
   return (
     <CardInteractive className={cn("overflow-hidden p-0", className)} {...props}>
-      <div className="relative aspect-[16/10] overflow-hidden bg-foreground/5">
+      <div className="relative aspect-16/10 overflow-hidden bg-foreground/5">
         <Image
           src={image.src}
           alt={imageAlt}
@@ -63,7 +63,7 @@ export function CardMedia({
           height={image.height}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
         />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent" />
+        <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/65 via-black/15 to-transparent" />
 
         {category ? (
           <div className="absolute left-0 top-0">

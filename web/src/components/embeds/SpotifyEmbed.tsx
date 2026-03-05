@@ -26,10 +26,12 @@ export function SpotifyEmbed({
   url,
   title = "Spotify embed",
   variant = "compact",
+  className,
 }: {
   url: string;
   title?: string;
   variant?: "compact" | "regular";
+  className?: string;
 }) {
   const src = toSpotifyEmbedSrc(url);
   if (!src) return <EmbedFallback provider="Spotify" href={url} reason="Invalid Spotify URL." />;
@@ -44,6 +46,8 @@ export function SpotifyEmbed({
       height={height}
       allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
       sandbox="allow-scripts allow-same-origin allow-popups"
+      rounded
+      className={className}
     />
   );
 }

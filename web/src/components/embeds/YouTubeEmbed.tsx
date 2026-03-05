@@ -35,9 +35,11 @@ function toYouTubeEmbedSrc(input: string): { src: string; videoId: string } | nu
 export function YouTubeEmbed({
   url,
   title = "YouTube embed",
+  className,
 }: {
   url: string;
   title?: string;
+  className?: string;
 }) {
   const parsed = toYouTubeEmbedSrc(url);
   if (!parsed) return <EmbedFallback provider="YouTube" href={url} reason="Invalid YouTube URL." />;
@@ -48,6 +50,8 @@ export function YouTubeEmbed({
     <EmbedFrame
       title={title}
       src={src}
+      rounded
+      className={className}
       aspect="16/9"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
       sandbox="allow-scripts allow-same-origin allow-presentation"

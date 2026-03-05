@@ -17,9 +17,11 @@ function toSoundCloudSrc(url: string) {
 export function SoundCloudEmbed({
   url,
   title = "SoundCloud embed",
+  className,
 }: {
   url: string;
   title?: string;
+  className?: string;
 }) {
   const src = toSoundCloudSrc(url);
   if (!src) return <EmbedFallback provider="SoundCloud" href={url} reason="Invalid SoundCloud URL." />;
@@ -31,6 +33,8 @@ export function SoundCloudEmbed({
       height={166}
       allow="autoplay"
       sandbox="allow-scripts allow-same-origin"
+      rounded
+      className={className}
     />
   );
 }
