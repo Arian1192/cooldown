@@ -17,7 +17,7 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <PageHeader title="500" caption="Something went wrong." />
       <button
         className="inline-flex items-center rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-foreground"

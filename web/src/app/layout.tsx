@@ -1,18 +1,21 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Barlow_Condensed, DM_Sans } from "next/font/google";
 
 import "./globals.css";
 import { SiteShell } from "@/components/SiteShell";
 import { env } from "@/env";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const barlow = Barlow_Condensed({
+  variable: "--font-barlow",
   subsets: ["latin"],
+  weight: ["400", "600", "700", "900"],
+  style: ["normal", "italic"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
   subsets: ["latin"],
+  weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {
@@ -21,14 +24,14 @@ export const metadata: Metadata = {
     default: env.NEXT_PUBLIC_SITE_NAME,
     template: `%s · ${env.NEXT_PUBLIC_SITE_NAME}`,
   },
-  description: "Baseline scaffold (Sprint 1)",
+  description: "Música, arte urbano y cultura de club.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
     title: env.NEXT_PUBLIC_SITE_NAME,
-    description: "Baseline scaffold (Sprint 1)",
+    description: "Música, arte urbano y cultura de club.",
     url: "/",
     siteName: env.NEXT_PUBLIC_SITE_NAME,
   },
@@ -40,8 +43,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    <html lang="es">
+      <body className={`${barlow.variable} ${dmSans.variable} antialiased`}>
         <SiteShell>{children}</SiteShell>
       </body>
     </html>

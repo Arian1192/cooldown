@@ -2,39 +2,31 @@
 
 :root {
   /*
-    Design tokens (baseline)
-    - Keep these as CSS variables so we can evolve brand + theming without churn.
+    Club-culture editorial brand – permanently dark identity.
+    Acid yellow accent, sharp corners, condensed display type.
   */
-  --background: 0 0% 100%;
-  --foreground: 222 47% 11%;
+  --background: 0 0% 5%;
+  --foreground: 0 0% 96%;
 
-  --surface: 0 0% 100%;
-  --muted: 215 16% 47%;
-  --border: 214 32% 91%;
+  --surface: 0 0% 9%;
+  --muted: 0 0% 50%;
+  --border: 0 0% 16%;
 
-  --accent: 268 85% 55%;
-  --accent-foreground: 0 0% 100%;
+  /* Acid yellow-green – chartreuse / rave culture */
+  --accent: 76 100% 50%;
+  --accent-foreground: 0 0% 5%;
 
-  --radius: 12px;
-}
+  /* Hot red – urgent / secondary hit */
+  --accent-2: 350 88% 56%;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: 222 47% 7%;
-    --foreground: 210 40% 98%;
-
-    --surface: 222 47% 9%;
-    --muted: 215 20% 70%;
-    --border: 217 19% 18%;
-
-    --accent: 268 85% 60%;
-    --accent-foreground: 0 0% 100%;
-  }
+  /* Flat editorial – no bubble corners */
+  --radius: 2px;
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-barlow);
+  --font-sans: var(--font-dm-sans);
+  --font-mono: monospace;
 
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -43,6 +35,7 @@
   --color-border: hsl(var(--border));
   --color-accent: hsl(var(--accent));
   --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-accent-2: hsl(var(--accent-2));
 
   --radius-xl: var(--radius);
 }
@@ -55,4 +48,11 @@ body {
 body {
   background: hsl(var(--background));
   color: hsl(var(--foreground));
+  font-size: 16px;
+  line-height: 1.6;
+  text-rendering: geometricPrecision;
 }
+
+h1 { letter-spacing: -0.03em; }
+h2 { letter-spacing: -0.02em; }
+h3 { letter-spacing: -0.01em; }
