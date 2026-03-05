@@ -45,7 +45,7 @@ export default async function SearchPage({
   if (cityFilter) captionParts.push(`City: ${labelForCity(cityFilter)}`);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <PageHeader
         title="Search"
         caption={

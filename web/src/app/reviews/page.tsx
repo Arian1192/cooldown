@@ -27,7 +27,7 @@ export default async function ReviewsListPage({
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <PageHeader title="Reviews" caption="Album reviews (template data)." />
       <ContentList items={items} />
       <Pagination basePath="/reviews" page={safePage} pageCount={pageCount} />

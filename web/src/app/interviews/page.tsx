@@ -27,7 +27,7 @@ export default async function InterviewsListPage({
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <PageHeader
         title="Interviews"
         caption="Artist interviews (template data)."
