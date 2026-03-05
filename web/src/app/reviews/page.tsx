@@ -20,7 +20,7 @@ export default async function ReviewsListPage({
   return (
     <div className="space-y-6">
       <PageHeader title="Reviews" caption="Album reviews (template data)." />
-      <ContentList type="reviews" items={items} />
+      <ContentList items={items} />
       <Pagination basePath="/reviews" page={safePage} pageCount={pageCount} />
     </div>
   );

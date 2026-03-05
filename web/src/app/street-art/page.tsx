@@ -23,7 +23,7 @@ export default async function StreetArtListPage({
         title="Street Art Gallery"
         caption="Street art drops and photo sets (template data)."
       />
-      <ContentList type="street-art" items={items} />
+      <ContentList items={items} />
       <Pagination
         basePath="/street-art"
         page={safePage}

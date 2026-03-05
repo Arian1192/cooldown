@@ -23,7 +23,7 @@ export default async function DiscoverListPage({
         title="Weekly Discover"
         caption="New weekly discover picks (template data)."
       />
-      <ContentList type="discover" items={items} />
+      <ContentList items={items} />
       <Pagination basePath="/discover" page={safePage} pageCount={pageCount} />
     </div>
   );

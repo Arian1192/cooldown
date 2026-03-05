@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 import type { ContentType } from "@/lib/content";
-import { getItem, labelForType } from "@/lib/content";
+import { getItem, labelForCity, labelForType } from "@/lib/content";
 
 export function ContentDetail({
   type,
@@ -17,7 +17,17 @@ export function ContentDetail({
     <article className="space-y-6">
       <header className="space-y-2">
         <div className="text-xs text-muted">
-          {labelForType(type)} · {item.date}
+          {labelForType(type)} · {labelForCity(item.city)} · {item.date}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {item.tags.map((t) => (
+            <span
+              key={t}
+              className="inline-flex rounded bg-background px-2 py-0.5 text-xs text-muted"
+            >
+              #{t}
+            </span>
+          ))}
         </div>
         <h1 className="text-balance text-3xl font-semibold tracking-tight">
           {item.title}

@@ -23,7 +23,7 @@ export default async function InterviewsListPage({
         title="Interviews"
         caption="Artist interviews (template data)."
       />
-      <ContentList type="interviews" items={items} />
+      <ContentList items={items} />
       <Pagination
         basePath="/interviews"
         page={safePage}
