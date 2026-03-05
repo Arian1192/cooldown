@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import type { ContentType } from "@/lib/content";
 import { getItem, labelForCity, labelForType } from "@/lib/content";
 
+import { EmbedDemo } from "@/components/embeds/EmbedDemo";
+
 export function ContentDetail({
   type,
   slug,
@@ -35,7 +37,7 @@ export function ContentDetail({
         <p className="max-w-prose text-sm text-muted">{item.excerpt}</p>
       </header>
 
-      <div className="prose prose-invert:prose-invert max-w-none">
+      <div className="prose max-w-none">
         <p>
           This is a template detail page. Replace with CMS content in a later
           sprint.
@@ -45,6 +47,8 @@ export function ContentDetail({
           embedded media.
         </p>
       </div>
+
+      <EmbedDemo />
     </article>
   );
 }
