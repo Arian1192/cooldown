@@ -27,7 +27,7 @@ export default async function DiscoverListPage({
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <PageHeader
         title="Weekly Discover"
         caption="New weekly discover picks (template data)."

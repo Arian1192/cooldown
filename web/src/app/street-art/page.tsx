@@ -27,7 +27,7 @@ export default async function StreetArtListPage({
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <PageHeader
         title="Street Art Gallery"
         caption="Street art drops and photo sets (template data)."
