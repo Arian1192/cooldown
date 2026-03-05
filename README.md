@@ -27,6 +27,22 @@ npm run start
 GitHub Actions workflow: `.github/workflows/ci.yml`
 - runs `npm ci`, `npm run lint`, `npm run build` in `web/`
 
+## Internal linking conventions
+
+Route patterns (Sprint 1 templates):
+
+- Content lists:
+  - `/discover`, `/street-art`, `/interviews`, `/reviews`
+  - Pagination uses query param: `?page=2`
+- Content detail:
+  - `/discover/[slug]`, `/street-art/[slug]`, `/interviews/[slug]`, `/reviews/[slug]`
+- City landing pages:
+  - `/city/barcelona`, `/city/madrid` (implemented via `/city/[slug]`)
+
+Conventions:
+- Use absolute internal links (`/path`) via `next/link`.
+- Prefer `slug` in URLs for content; IDs stay internal.
+
 ## Deployment (recommended: Vercel)
 
 Vercel supports monorepos. Configure:
