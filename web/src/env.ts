@@ -4,4 +4,8 @@
 
 export const env = {
   NEXT_PUBLIC_SITE_NAME: process.env.NEXT_PUBLIC_SITE_NAME ?? "Music + Urban",
+
+  // Server-only. Used for canonical URLs, sitemap, RSS.
+  SITE_URL: process.env.SITE_URL ?? "http://localhost:3000",
+
 };

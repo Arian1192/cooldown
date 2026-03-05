@@ -1,7 +1,16 @@
+import type { Metadata } from "next";
+
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Pagination } from "@/components/ui/Pagination";
 import { ContentList } from "@/components/ContentList";
 import { getPagedItems } from "@/lib/content";
+import { basicOg } from "@/lib/seo";
+
+export const metadata: Metadata = basicOg({
+  title: "Reviews",
+  description: "Album reviews.",
+  canonicalPath: "/reviews",
+});
 
 export default async function ReviewsListPage({
   searchParams,

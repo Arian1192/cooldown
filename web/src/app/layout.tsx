@@ -16,8 +16,22 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: env.NEXT_PUBLIC_SITE_NAME,
+  metadataBase: new URL(env.SITE_URL),
+  title: {
+    default: env.NEXT_PUBLIC_SITE_NAME,
+    template: `%s · ${env.NEXT_PUBLIC_SITE_NAME}`,
+  },
   description: "Baseline scaffold (Sprint 1)",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    title: env.NEXT_PUBLIC_SITE_NAME,
+    description: "Baseline scaffold (Sprint 1)",
+    url: "/",
+    siteName: env.NEXT_PUBLIC_SITE_NAME,
+  },
 };
 
 export default function RootLayout({

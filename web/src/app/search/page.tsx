@@ -1,6 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import type { CitySlug, ContentType } from "@/lib/content";
+import { basicOg } from "@/lib/seo";
+
+export const metadata: Metadata = basicOg({
+  title: "Search",
+  description: "Search posts and filter by type/city.",
+  canonicalPath: "/search",
+});
 import { labelForCity, labelForType, searchItems } from "@/lib/content";
 import { ContentList } from "@/components/ContentList";
 import { Card, CardCaption, CardTitle } from "@/components/ui/Card";

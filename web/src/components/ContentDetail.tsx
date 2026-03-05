@@ -4,6 +4,8 @@ import type { ContentType } from "@/lib/content";
 import { getItem, labelForCity, labelForType } from "@/lib/content";
 
 import { EmbedDemo } from "@/components/embeds/EmbedDemo";
+import { articleJsonLd } from "@/lib/structuredData";
+import { siteUrl } from "@/lib/site";
 
 export function ContentDetail({
   type,
@@ -15,8 +17,15 @@ export function ContentDetail({
   const item = getItem(type, slug);
   if (!item) notFound();
 
+  const jsonLd = articleJsonLd(item);
+  const canonical = siteUrl(`/${item.type}/${item.slug}`);
+
   return (
     <article className="space-y-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <header className="space-y-2">
         <div className="text-xs text-muted">
           {labelForType(type)} · {labelForCity(item.city)} · {item.date}
@@ -49,6 +58,13 @@ export function ContentDetail({
       </div>
 
       <EmbedDemo />
+
+      <div className="text-xs text-muted">
+        Permalink: {" "}
+        <a className="underline" href={canonical} target="_blank" rel="noreferrer">
+          {canonical}
+        </a>
+      </div>
     </article>
   );
 }

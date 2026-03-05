@@ -1,8 +1,36 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Card, CardCaption, CardTitle } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { cityEventJsonLd } from "@/lib/structuredData";
+import { env } from "@/env";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  if (slug !== "barcelona" && slug !== "madrid") return {};
+
+  const title = slug === "barcelona" ? "Barcelona" : "Madrid";
+  const canonical = `/city/${slug}`;
+
+  return {
+    title,
+    description: `City landing page for ${title}.`,
+    alternates: { canonical },
+    openGraph: {
+      type: "website",
+      title: `${title} · ${env.NEXT_PUBLIC_SITE_NAME}`,
+      description: `City landing page for ${title}.`,
+      url: canonical,
+      siteName: env.NEXT_PUBLIC_SITE_NAME,
+    },
+  };
+}
 
 type City = {
   slug: "barcelona" | "madrid";
@@ -32,8 +60,14 @@ export default async function CityLandingPage({
   const city = CITIES[slug];
   if (!city) notFound();
 
+  const jsonLd = cityEventJsonLd(city.slug);
+
   return (
     <div className="space-y-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <PageHeader title={city.title} caption={city.caption} />
 
       <section className="grid gap-3 sm:grid-cols-2">
