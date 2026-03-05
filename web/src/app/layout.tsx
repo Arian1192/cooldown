@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 
 import "./globals.css";
 import { SiteShell } from "@/components/SiteShell";
+import { env } from "@/env";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Music + Urban Blog",
+  title: env.NEXT_PUBLIC_SITE_NAME,
   description: "Baseline scaffold (Sprint 1)",
 };
 
