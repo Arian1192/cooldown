@@ -14,6 +14,10 @@ export type ContentItem = {
   title: string;
   excerpt: string;
   date: string;
+
+  // UI: placeholder cover used until CMS provides real media.
+  coverImageSrc: string;
+  coverImageAlt: string;
 };
 
 const CITY_SEQ: CitySlug[] = ["barcelona", "madrid"];
@@ -40,6 +44,8 @@ const seed = (type: ContentType, count: number): ContentItem[] =>
       excerpt:
         "Template content. This will be replaced by CMS-backed data in a later sprint.",
       date: new Date(Date.now() - n * 86400000).toISOString().slice(0, 10),
+      coverImageSrc: "/placeholders/urban-cover.svg",
+      coverImageAlt: `${labelForType(type)} cover`,
     };
   });
 
