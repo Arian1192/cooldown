@@ -5,6 +5,10 @@
 export const env = {
   NEXT_PUBLIC_SITE_NAME: process.env.NEXT_PUBLIC_SITE_NAME ?? "Music + Urban",
 
+  // Analytics (public)
+  NEXT_PUBLIC_UMAMI_SCRIPT_URL: process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL,
+  NEXT_PUBLIC_UMAMI_WEBSITE_ID: process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID,
+
   // Server-only. Used for canonical URLs, sitemap, RSS.
   // On Vercel, `VERCEL_URL` is automatically available (hostname without protocol).
   SITE_URL:
