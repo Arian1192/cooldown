@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getAllItems, labelForType } from "@/lib/content";
-import { siteUrl } from "@/lib/site";
+import { baseUrlFromHeaders } from "@/lib/requestUrl";
 import { env } from "@/env";
 
 function escapeXml(s: string) {
@@ -13,7 +13,9 @@ function escapeXml(s: string) {
     .replace(/'/g, "&apos;");
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const baseUrl = baseUrlFromHeaders(new Headers(request.headers));
+
   const items = getAllItems()
     .slice()
     .sort((a, b) => (a.date < b.date ? 1 : -1))
@@ -23,11 +25,11 @@ export async function GET() {
 <rss version="2.0">
   <channel>
     <title>${escapeXml(env.NEXT_PUBLIC_SITE_NAME)}</title>
-    <link>${escapeXml(siteUrl("/"))}</link>
+    <link>${escapeXml(`${baseUrl}/`)}</link>
     <description>${escapeXml("Latest posts (template RSS).")}</description>
     ${items
       .map((item) => {
-        const url = siteUrl(`/${item.type}/${item.slug}`);
+        const url = `${baseUrl}/${item.type}/${item.slug}`;
         return `
     <item>
       <title>${escapeXml(item.title)}</title>
