@@ -1,6 +1,6 @@
-import Image from "next/image";
+import Image from 'next/image';
 
-import { cn } from "@/lib/cn";
+import { cn } from '@/lib/cn';
 
 /**
  * Base card – flat, editorial, no rounded corners.
@@ -8,13 +8,10 @@ import { cn } from "@/lib/cn";
 export function Card({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+}: React.ComponentPropsWithoutRef<'div'>) {
   return (
     <div
-      className={cn(
-        "border border-border bg-surface",
-        className,
-      )}
+      className={cn('border border-border bg-surface', className)}
       {...props}
     />
   );
@@ -26,11 +23,11 @@ export function Card({
 export function CardInteractive({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+}: React.ComponentPropsWithoutRef<'div'>) {
   return (
     <Card
       className={cn(
-        "group transition-colors hover:border-accent/40",
+        'group transition-colors hover:border-accent/40',
         className,
       )}
       {...props}
@@ -48,13 +45,16 @@ export function CardMedia({
   className,
   children,
   ...props
-}: React.ComponentPropsWithoutRef<"div"> & {
+}: React.ComponentPropsWithoutRef<'div'> & {
   image: { src: string; width: number; height: number };
   imageAlt: string;
   category?: string;
 }) {
   return (
-    <CardInteractive className={cn("overflow-hidden p-0", className)} {...props}>
+    <CardInteractive
+      className={cn('overflow-hidden p-0', className)}
+      {...props}
+    >
       <div className="relative aspect-16/10 overflow-hidden bg-foreground/5">
         <Image
           src={image.src}
@@ -80,11 +80,11 @@ export function CardMedia({
 export function CardChip({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<"span">) {
+}: React.ComponentPropsWithoutRef<'span'>) {
   return (
     <span
       className={cn(
-        "inline-flex items-center bg-accent px-2 py-1 font-display text-[10px] font-bold uppercase tracking-[0.2em] text-accent-foreground",
+        'inline-flex items-center bg-accent px-2 py-1 font-display text-[10px] font-bold uppercase tracking-[0.2em] text-accent-foreground',
         className,
       )}
       {...props}
@@ -95,11 +95,11 @@ export function CardChip({
 export function CardTitle({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<"h3">) {
+}: React.ComponentPropsWithoutRef<'h3'>) {
   return (
     <h3
       className={cn(
-        "font-display text-[17px] font-bold uppercase leading-tight tracking-tight",
+        'font-display text-[17px] font-bold uppercase leading-tight tracking-tight',
         className,
       )}
       {...props}
@@ -110,8 +110,14 @@ export function CardTitle({
 export function CardCaption({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<"p">) {
+}: React.ComponentPropsWithoutRef<'p'>) {
   return (
-    <p className={cn("mt-1 font-display text-[10px] font-bold uppercase tracking-[0.16em] text-muted", className)} {...props} />
+    <p
+      className={cn(
+        'mt-1 font-display text-[10px] font-bold uppercase tracking-[0.16em] text-muted',
+        className,
+      )}
+      {...props}
+    />
   );
 }

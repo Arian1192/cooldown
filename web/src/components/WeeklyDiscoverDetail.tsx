@@ -1,11 +1,16 @@
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { SoundCloudEmbed } from '@/components/embeds/SoundCloudEmbed';
 import { SpotifyEmbed } from '@/components/embeds/SpotifyEmbed';
 import { YouTubeEmbed } from '@/components/embeds/YouTubeEmbed';
 import { cn } from '@/lib/cn';
-import type { SetMoment } from '@/lib/content';
-import { getItem, labelForCity } from '@/lib/content';
+import type { ContentItem, SetMoment } from '@/lib/content';
+import {
+  getDiscoverWeeklyNeighbors,
+  getItem,
+  labelForCity,
+} from '@/lib/content';
 import { siteUrl } from '@/lib/site';
 import { articleJsonLd } from '@/lib/structuredData';
 
@@ -69,7 +74,14 @@ const SET_MOMENT_LABEL: Record<SetMoment, string> = {
 
 function EmbedPlayer({ url, title }: { url: string; title: string }) {
   if (url.includes('spotify.com')) {
-    return <SpotifyEmbed url={url} title={title} variant="regular" className="border-0" />;
+    return (
+      <SpotifyEmbed
+        url={url}
+        title={title}
+        variant="regular"
+        className="border-0"
+      />
+    );
   }
   if (url.includes('soundcloud.com')) {
     return <SoundCloudEmbed url={url} title={title} className="border-0" />;
@@ -92,9 +104,23 @@ function Tag({ children }: { children: React.ReactNode }) {
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-export function WeeklyDiscoverDetail({ slug }: { slug: string }) {
-  const item = getItem('discover', slug);
+export function WeeklyDiscoverDetail({
+  slug,
+  item: itemProp,
+  previous: previousProp,
+  next: nextProp,
+}: {
+  slug?: string;
+  item?: ContentItem;
+  previous?: ContentItem | null;
+  next?: ContentItem | null;
+}) {
+  const item = itemProp ?? (slug ? getItem('discover', slug) : null);
   if (!item || item.episode == null) notFound();
+
+  const fallbackNeighbors = getDiscoverWeeklyNeighbors(item.slug);
+  const previous = previousProp ?? fallbackNeighbors.previous;
+  const next = nextProp ?? fallbackNeighbors.next;
 
   const jsonLd = articleJsonLd(item);
   const canonical = siteUrl(`/discover/${item.slug}`);
@@ -137,7 +163,9 @@ export function WeeklyDiscoverDetail({ slug }: { slug: string }) {
         <>
           <Divider />
           <section className="py-6">
-            <EmbedPlayer url={item.embedUrl} title={item.title} />
+            <div className="w-full">
+              <EmbedPlayer url={item.embedUrl} title={item.title} />
+            </div>
           </section>
         </>
       )}
@@ -270,6 +298,50 @@ export function WeeklyDiscoverDetail({ slug }: { slug: string }) {
           {canonical}
         </a>
       </div>
+
+      <Divider />
+      <nav
+        aria-label="Navegación semanal"
+        className="flex items-center justify-between gap-4 py-6"
+      >
+        <div className="flex-1">
+          {previous ? (
+            <Link
+              href={`/discover/${previous.slug}`}
+              className="inline-flex items-center gap-2 border border-border bg-surface px-3 py-2 font-display text-xs font-bold uppercase tracking-[0.18em] text-foreground transition-colors hover:border-accent/40"
+              title={`${previous.trackArtist ?? ''} ${previous.title}`.trim()}
+            >
+              <span aria-hidden="true">←</span>
+              <span className="max-w-[28ch] truncate">
+                {previous.trackArtist ?? previous.title}
+                {previous.trackArtist ? ' — ' : ''}
+                {previous.trackArtist
+                  ? previous.title.replace(`${previous.trackArtist} – `, '')
+                  : ''}
+              </span>
+            </Link>
+          ) : null}
+        </div>
+
+        <div className="flex flex-1 justify-end">
+          {next ? (
+            <Link
+              href={`/discover/${next.slug}`}
+              className="inline-flex items-center gap-2 border border-border bg-surface px-3 py-2 font-display text-xs font-bold uppercase tracking-[0.18em] text-foreground transition-colors hover:border-accent/40"
+              title={`${next.trackArtist ?? ''} ${next.title}`.trim()}
+            >
+              <span className="max-w-[28ch] truncate">
+                {next.trackArtist ?? next.title}
+                {next.trackArtist ? ' — ' : ''}
+                {next.trackArtist
+                  ? next.title.replace(`${next.trackArtist} – `, '')
+                  : ''}
+              </span>
+              <span aria-hidden="true">→</span>
+            </Link>
+          ) : null}
+        </div>
+      </nav>
     </article>
   );
 }

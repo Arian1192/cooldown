@@ -1,9 +1,9 @@
-import { cn } from "@/lib/cn";
+import { cn } from '@/lib/cn';
 
 export function EmbedFrame({
   title,
   src,
-  aspect = "16/9",
+  aspect = '16/9',
   height,
   className,
   allow,
@@ -25,8 +25,8 @@ export function EmbedFrame({
   return (
     <div
       className={cn(
-        "overflow-hidden border border-border",
-        rounded && "rounded-xl",
+        'overflow-hidden border border-border',
+        rounded && 'rounded-xl',
         className,
       )}
       style={{ aspectRatio: height ? undefined : aspect, height }}

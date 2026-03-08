@@ -1,10 +1,10 @@
-import { EmbedFallback } from "@/components/embeds/EmbedFallback";
-import { EmbedFrame } from "@/components/embeds/EmbedFrame";
+import { EmbedFallback } from '@/components/embeds/EmbedFallback';
+import { EmbedFrame } from '@/components/embeds/EmbedFrame';
 
 function toSoundCloudSrc(url: string) {
   try {
     const u = new URL(url);
-    if (!u.hostname.endsWith("soundcloud.com")) return null;
+    if (!u.hostname.endsWith('soundcloud.com')) return null;
 
     const encoded = encodeURIComponent(url);
     // SoundCloud uses a fixed-height player; we keep height to minimize CLS.
@@ -16,7 +16,7 @@ function toSoundCloudSrc(url: string) {
 
 export function SoundCloudEmbed({
   url,
-  title = "SoundCloud embed",
+  title = 'SoundCloud embed',
   className,
 }: {
   url: string;
@@ -24,7 +24,14 @@ export function SoundCloudEmbed({
   className?: string;
 }) {
   const src = toSoundCloudSrc(url);
-  if (!src) return <EmbedFallback provider="SoundCloud" href={url} reason="Invalid SoundCloud URL." />;
+  if (!src)
+    return (
+      <EmbedFallback
+        provider="SoundCloud"
+        href={url}
+        reason="Invalid SoundCloud URL."
+      />
+    );
 
   return (
     <EmbedFrame

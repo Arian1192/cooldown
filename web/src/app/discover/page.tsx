@@ -1,11 +1,10 @@
 import type { Metadata } from 'next';
 
-import { ContentList } from '@/components/ContentList';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { Pagination } from '@/components/ui/Pagination';
+import { SortToggle } from '@/components/ui/SortToggle';
 import { WeeklyDiscoverCard } from '@/components/WeeklyDiscoverCard';
-import { getPagedItems } from '@/lib/content';
 import { basicOg } from '@/lib/seo';
+import { getWeeklyDiscoverItems } from '@/lib/weeklyDiscover';
 
 export const metadata: Metadata = basicOg({
   title: 'Weekly Discover',
@@ -16,20 +15,15 @@ export const metadata: Metadata = basicOg({
 export default async function DiscoverListPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ order?: string }>;
 }) {
-  const { page } = await searchParams;
-  const pageNum = Number(page ?? '1');
+  const { order } = await searchParams;
+  const sortOrder: 'asc' | 'desc' =
+    order === 'asc' ? 'asc' : 'desc';
 
-  const {
-    items,
-    page: safePage,
-    pageCount,
-  } = getPagedItems('discover', Number.isFinite(pageNum) ? pageNum : 1, 10);
-
-  // Split into weekly picks (have episode) and regular items
-  const weeklyItems = items.filter((i) => i.episode != null);
-  const regularItems = items.filter((i) => i.episode == null);
+  const items = await getWeeklyDiscoverItems();
+  const sorted =
+    sortOrder === 'desc' ? [...items].reverse() : items;
 
   return (
     <div className="space-y-8">
@@ -38,37 +32,29 @@ export default async function DiscoverListPage({
         caption="Una joya de la música electrónica — Techno, House, Deep House — cada semana."
       />
 
+      {/* Sort control */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <h2 className="font-display text-[10px] font-bold uppercase tracking-[0.28em] text-accent">
+            {sorted.length} {sorted.length === 1 ? 'episodio' : 'episodios'}
+          </h2>
+          <span className="h-px flex-1 bg-border" />
+        </div>
+        <SortToggle current={sortOrder} />
+      </div>
+
       {/* Weekly curated picks */}
-      {weeklyItems.length > 0 && (
-        <section className="space-y-4">
-          <div className="flex items-center gap-4">
-            <h2 className="font-display text-[10px] font-bold uppercase tracking-[0.28em] text-accent">
-              Picks curados
-            </h2>
-            <span className="h-px flex-1 bg-border" />
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-            {weeklyItems.map((item) => (
-              <WeeklyDiscoverCard key={item.slug} item={item} />
-            ))}
-          </div>
-        </section>
+      {sorted.length > 0 ? (
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+          {sorted.map((item) => (
+            <WeeklyDiscoverCard key={item.slug} item={item} />
+          ))}
+        </div>
+      ) : (
+        <p className="py-16 text-center text-sm text-muted">
+          Aún no hay episodios publicados. ¡Vuelve pronto!
+        </p>
       )}
-
-      {/* Regular discover items */}
-      {regularItems.length > 0 && (
-        <section className="space-y-4">
-          <div className="flex items-center justify-between gap-4">
-            <h2 className="font-display text-[10px] font-bold uppercase tracking-[0.28em] text-muted">
-              Archivo
-            </h2>
-            <span className="h-px flex-1 bg-border" />
-          </div>
-          <ContentList items={regularItems} />
-        </section>
-      )}
-
-      <Pagination basePath="/discover" page={safePage} pageCount={pageCount} />
     </div>
   );
 }

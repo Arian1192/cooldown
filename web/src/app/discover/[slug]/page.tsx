@@ -4,6 +4,10 @@ import { ContentDetail } from '@/components/ContentDetail';
 import { WeeklyDiscoverDetail } from '@/components/WeeklyDiscoverDetail';
 import { env } from '@/env';
 import { getItem, labelForCity } from '@/lib/content';
+import {
+  getWeeklyDiscoverItemBySlug,
+  getWeeklyDiscoverNeighbors,
+} from '@/lib/weeklyDiscover';
 
 export async function generateMetadata({
   params,
@@ -11,7 +15,8 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const item = getItem('discover', slug);
+  const item =
+    (await getWeeklyDiscoverItemBySlug(slug)) ?? getItem('discover', slug);
   if (!item) return {};
 
   const title =
@@ -47,11 +52,14 @@ export default async function DiscoverDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const item = getItem('discover', slug);
+  const weeklyItem = await getWeeklyDiscoverItemBySlug(slug);
 
   // Weekly curated picks get the full structured template
-  if (item?.episode != null) {
-    return <WeeklyDiscoverDetail slug={slug} />;
+  if (weeklyItem?.episode != null) {
+    const { previous, next } = await getWeeklyDiscoverNeighbors(slug);
+    return (
+      <WeeklyDiscoverDetail item={weeklyItem} previous={previous} next={next} />
+    );
   }
 
   // Regular discover items fall back to the generic template

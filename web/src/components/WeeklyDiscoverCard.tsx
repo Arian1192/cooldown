@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { SoundCloudEmbed } from '@/components/embeds/SoundCloudEmbed';
 import { SpotifyEmbed } from '@/components/embeds/SpotifyEmbed';
@@ -15,6 +15,8 @@ import {
 } from '@/components/ui/Card';
 import { cn } from '@/lib/cn';
 import type { ContentItem } from '@/lib/content';
+
+const DISCOVER_PREVIEW_EVENT = 'discover-preview-activate';
 
 // ── Small helpers ──────────────────────────────────────────────────────────────
 
@@ -52,6 +54,27 @@ function EmbedPreview({ url, title }: { url: string; title: string }) {
 export function WeeklyDiscoverCard({ item }: { item: ContentItem }) {
   const [embedReady, setEmbedReady] = useState(false);
 
+  useEffect(() => {
+    const onPreviewActivate = (event: Event) => {
+      const customEvent = event as CustomEvent<{ slug?: string }>;
+      if (customEvent.detail?.slug !== item.slug) {
+        setEmbedReady(false);
+      }
+    };
+
+    window.addEventListener(DISCOVER_PREVIEW_EVENT, onPreviewActivate);
+    return () => {
+      window.removeEventListener(DISCOVER_PREVIEW_EVENT, onPreviewActivate);
+    };
+  }, [item.slug]);
+
+  const activatePreview = () => {
+    window.dispatchEvent(
+      new CustomEvent(DISCOVER_PREVIEW_EVENT, { detail: { slug: item.slug } }),
+    );
+    setEmbedReady(true);
+  };
+
   const SET_MOMENT_LABEL: Record<string, string> = {
     'warm-up': 'Warm-up',
     'peak-time': 'Peak Time',
@@ -62,7 +85,8 @@ export function WeeklyDiscoverCard({ item }: { item: ContentItem }) {
   return (
     <CardInteractive
       className="group overflow-hidden p-0"
-      onMouseEnter={() => setEmbedReady(true)}
+      onMouseEnter={activatePreview}
+      onMouseLeave={() => setEmbedReady(false)}
     >
       {/* ── Image + overlay ─────────────────────────────────────────────── */}
       <div className="relative aspect-16/10 overflow-hidden bg-foreground/5">

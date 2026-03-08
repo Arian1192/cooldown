@@ -1,10 +1,21 @@
 import Link from 'next/link';
 
 import { EditorialList } from '@/components/EditorialList';
-import { getPagedItems } from '@/lib/content';
+import { SortToggle } from '@/components/ui/SortToggle';
+import { getWeeklyDiscoverItems } from '@/lib/weeklyDiscover';
 
-export default function Home() {
-  const { items } = getPagedItems('discover', 1, 8);
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ order?: string }>;
+}) {
+  const { order } = await searchParams;
+  const sortOrder: 'asc' | 'desc' =
+    order === 'asc' ? 'asc' : 'desc';
+
+  const items = await getWeeklyDiscoverItems();
+  const sorted =
+    sortOrder === 'desc' ? [...items].reverse() : items;
 
   return (
     <div>
@@ -47,20 +58,30 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Latest editorial */}
+      {/* Latest Weekly Discover */}
       <section>
         <div className="mb-6 flex items-end justify-between">
           <h2 className="font-display text-[clamp(1.5rem,3vw,2.2rem)] font-black uppercase leading-none tracking-tight">
             Latest
           </h2>
-          <Link
-            href="/discover"
-            className="font-display text-[11px] font-bold uppercase tracking-[0.18em] text-muted transition-colors hover:text-accent"
-          >
-            All →
-          </Link>
+          <div className="flex items-center gap-4">
+            <SortToggle current={sortOrder} />
+            <Link
+              href="/discover"
+              className="font-display text-[11px] font-bold uppercase tracking-[0.18em] text-muted transition-colors hover:text-accent"
+            >
+              All →
+            </Link>
+          </div>
         </div>
-        <EditorialList items={items} />
+
+        {sorted.length > 0 ? (
+          <EditorialList items={sorted} />
+        ) : (
+          <p className="py-12 text-center text-sm text-muted">
+            No hay picks todavía. ¡Vuelve pronto!
+          </p>
+        )}
       </section>
     </div>
   );

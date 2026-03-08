@@ -201,6 +201,29 @@ export function getPagedItems(
   return { items: slice, page: safePage, pageCount };
 }
 
+export function getDiscoverArchivePaged(page: number, pageSize: number) {
+  const items = CONTENT.discover.filter((item) => item.episode == null);
+  const pageCount = Math.max(1, Math.ceil(items.length / pageSize));
+  const safePage = Math.min(Math.max(1, page), pageCount);
+  const start = (safePage - 1) * pageSize;
+  const slice = items.slice(start, start + pageSize);
+  return { items: slice, page: safePage, pageCount };
+}
+
+export function getDiscoverWeeklyNeighbors(slug: string) {
+  const weeklyItems = CONTENT.discover.filter((item) => item.episode != null);
+  const index = weeklyItems.findIndex((item) => item.slug === slug);
+
+  if (index === -1) {
+    return { previous: null, next: null };
+  }
+
+  return {
+    previous: weeklyItems[index - 1] ?? null,
+    next: weeklyItems[index + 1] ?? null,
+  };
+}
+
 export function getAllItems(): ContentItem[] {
   return Object.values(CONTENT).flat();
 }
