@@ -3,10 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "check:toolchain": "node -e \"const { execSync } = require('node:child_process'); const node = process.versions.node; const npm = execSync('npm -v').toString().trim(); if (!/^22\\./.test(node)) { console.error('Expected Node 22.x, found ' + node); process.exit(1); } if (!/^10\\./.test(npm)) { console.error('Expected npm 10.x, found ' + npm); process.exit(1); } console.log('Toolchain OK: Node ' + node + ', npm ' + npm);\"",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "engines": {
     "node": "22.x",
@@ -26,6 +30,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.4"
   }
 }

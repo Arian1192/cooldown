@@ -19,8 +19,14 @@ npm run dev
 
 ```bash
 npm run lint  # eslint + `eslint-config-next` (core-web-vitals)
+npm run typecheck # dedicated TypeScript validation (`tsc --noEmit`)
+npm run test # Vitest unit + route smoke tests
 npm run build # `next build`
 ```
+
+Quality references:
+- Accessibility baseline: `ACCESSIBILITY.md`
+- Performance budget: `PERFORMANCE.md`
 
 ## Environment variables
 
