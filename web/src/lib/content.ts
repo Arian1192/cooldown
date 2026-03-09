@@ -182,10 +182,16 @@ const strapiRepository: ContentRepository = {
     }
 
     const payload = (await response.json()) as { data?: unknown };
-    const weeklyDiscoverItems = parseItems(payload.data).map((item) => ({
-      ...item,
-      type: 'discover' as const,
-    }));
+    const weeklyDiscoverItems = Array.isArray(payload.data)
+      ? payload.data
+          .map((row) =>
+            normalizeItem({
+              ...((row ?? {}) as Partial<ContentItem>),
+              type: 'discover',
+            }),
+          )
+          .filter((item): item is ContentItem => item != null)
+      : [];
     const versionedItems = getVersionedItems().filter(
       (item) => item.type !== 'discover' || item.episode == null,
     );
