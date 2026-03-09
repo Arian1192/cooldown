@@ -30,8 +30,17 @@ Quality references:
 
 ## Environment variables
 
-- **Server-only:** regular vars (e.g. `CMS_BASE_URL`) – never prefix with `NEXT_PUBLIC_`.
+- **Server-only:** regular vars (e.g. `STRAPI_URL`) – never prefix with `NEXT_PUBLIC_`.
 - **Client-exposed:** must be prefixed with `NEXT_PUBLIC_` (anything else is not accessible in the browser).
+
+Current keys used by web:
+
+- `NEXT_PUBLIC_SITE_NAME` (optional, default `Music + Urban`)
+- `SITE_URL` (optional in Vercel, recommended in production for canonical URLs)
+- `STRAPI_URL` (recommended; CMS API base URL)
+- `CMS_BASE_URL` (legacy alias for `STRAPI_URL`, still accepted)
+- `NEXT_PUBLIC_UMAMI_SCRIPT_URL` (optional analytics)
+- `NEXT_PUBLIC_UMAMI_WEBSITE_ID` (optional analytics)
 
 Example file: `.env.example`
 

@@ -17,9 +17,11 @@ export const env = {
       ? `https://${process.env.VERCEL_URL}`
       : 'http://localhost:3000'),
 
-  // Server-only CMS endpoint
+  // Server-only CMS endpoint. `CMS_BASE_URL` is kept as a legacy alias.
   STRAPI_URL:
-    process.env.STRAPI_URL ?? 'https://cms-cooldown-roan.ariancoro.com',
+    process.env.STRAPI_URL ??
+    process.env.CMS_BASE_URL ??
+    'https://cms-cooldown-roan.ariancoro.com',
 
   // Server-only content source selector (`versioned-json` | `remote-json` | `strapi`)
   CONTENT_SOURCE: process.env.CONTENT_SOURCE ?? 'strapi',

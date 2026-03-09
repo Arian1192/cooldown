@@ -165,7 +165,9 @@ const strapiRepository: ContentRepository = {
   name: 'strapi',
   async load() {
     const strapiUrl = (
-      process.env.STRAPI_URL ?? 'https://cms-cooldown-roan.ariancoro.com'
+      process.env.STRAPI_URL ??
+      process.env.CMS_BASE_URL ??
+      'https://cms-cooldown-roan.ariancoro.com'
     ).replace(/\/$/, '');
 
     const response = await fetch(`${strapiUrl}/api/weekly-discover-feed`, {
@@ -180,10 +182,16 @@ const strapiRepository: ContentRepository = {
     }
 
     const payload = (await response.json()) as { data?: unknown };
-    const weeklyDiscoverItems = parseItems(payload.data).map((item) => ({
-      ...item,
-      type: 'discover' as const,
-    }));
+    const weeklyDiscoverItems = Array.isArray(payload.data)
+      ? payload.data
+          .map((row) =>
+            normalizeItem({
+              ...((row ?? {}) as Partial<ContentItem>),
+              type: 'discover',
+            }),
+          )
+          .filter((item): item is ContentItem => item != null)
+      : [];
     const versionedItems = getVersionedItems().filter(
       (item) => item.type !== 'discover' || item.episode == null,
     );
@@ -267,12 +275,7 @@ const loadStore = cache(async (): Promise<ContentStore> => {
 
     return {
       source: 'versioned-json',
-      itemsByType: {
-        discover: [],
-        'street-art': [],
-        interviews: [],
-        reviews: [],
-      },
+      itemsByType: groupByType(getVersionedItems()),
     };
   }
 });

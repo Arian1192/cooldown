@@ -40,7 +40,7 @@ npm run start
 ## CI
 
 GitHub Actions workflow: `.github/workflows/ci.yml`
-- runs `npm run check:toolchain`, `npm ci`, commit convention validation, `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` in `web/`
+- runs `npm run check:toolchain`, `npm ci`, commit convention validation, `npm run lint`, `npm run typecheck`, `npm run build` in `web/`
 
 PR governance:
 - Conventional Commit format is required for commit subjects.
