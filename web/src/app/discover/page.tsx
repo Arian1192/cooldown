@@ -23,7 +23,7 @@ export default async function DiscoverListPage({
 
   const items = await getWeeklyDiscoverItems();
   const sorted =
-    sortOrder === 'desc' ? [...items].reverse() : items;
+    sortOrder === 'asc' ? [...items].reverse() : items;
 
   return (
     <div className="space-y-8">
