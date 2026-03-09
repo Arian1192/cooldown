@@ -15,7 +15,7 @@ export default async function Home({
 
   const items = await getWeeklyDiscoverItems();
   const sorted =
-    sortOrder === 'desc' ? [...items].reverse() : items;
+    sortOrder === 'asc' ? [...items].reverse() : items;
 
   return (
     <div>
