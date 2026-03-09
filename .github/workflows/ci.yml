@@ -56,6 +56,10 @@ jobs:
 
           echo "Validating commit messages in range ${RANGE}"
           while IFS= read -r msg; do
+            if echo "$msg" | grep -Eq '^Merge '; then
+              echo "Skipping merge commit subject: $msg"
+              continue
+            fi
             if ! echo "$msg" | grep -Eq "$RE"; then
               echo "Invalid commit message: $msg"
               echo "Expected Conventional Commit, e.g. feat(web): add hero section"
@@ -68,6 +72,9 @@ jobs:
 
       - name: Typecheck
         run: npm run typecheck
+
+      - name: Test
+        run: npm run test
 
       - name: Build
         run: npm run build
