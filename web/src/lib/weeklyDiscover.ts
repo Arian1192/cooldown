@@ -1,10 +1,7 @@
 import type { ContentItem } from '@/lib/content';
+import { env } from '@/env';
 
-const DEFAULT_STRAPI_URL = 'http://127.0.0.1:1337';
-const STRAPI_URL = (process.env.STRAPI_URL ?? DEFAULT_STRAPI_URL).replace(
-  /\/$/,
-  '',
-);
+const STRAPI_URL = env.STRAPI_URL;
 
 type WeeklyDiscoverApiItem = {
   slug: string;
