@@ -104,7 +104,7 @@ function Tag({ children }: { children: React.ReactNode }) {
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-export function WeeklyDiscoverDetail({
+export async function WeeklyDiscoverDetail({
   slug,
   item: itemProp,
   previous: previousProp,
@@ -115,10 +115,10 @@ export function WeeklyDiscoverDetail({
   previous?: ContentItem | null;
   next?: ContentItem | null;
 }) {
-  const item = itemProp ?? (slug ? getItem('discover', slug) : null);
+  const item = itemProp ?? (slug ? await getItem('discover', slug) : null);
   if (!item || item.episode == null) notFound();
 
-  const fallbackNeighbors = getDiscoverWeeklyNeighbors(item.slug);
+  const fallbackNeighbors = await getDiscoverWeeklyNeighbors(item.slug);
   const previous = previousProp ?? fallbackNeighbors.previous;
   const next = nextProp ?? fallbackNeighbors.next;
 

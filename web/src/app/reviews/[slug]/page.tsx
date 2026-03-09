@@ -10,7 +10,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const item = getItem("reviews", slug);
+  const item = await getItem("reviews", slug);
   if (!item) return {};
 
   const title = item.title;

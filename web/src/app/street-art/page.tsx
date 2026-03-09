@@ -20,7 +20,7 @@ export default async function StreetArtListPage({
   const { page } = await searchParams;
   const pageNum = Number(page ?? "1");
 
-  const { items, page: safePage, pageCount } = getPagedItems(
+  const { items, page: safePage, pageCount } = await getPagedItems(
     "street-art",
     Number.isFinite(pageNum) ? pageNum : 1,
     10,

@@ -1,3 +1,7 @@
+import { cache } from 'react';
+
+import versionedData from '@/data/content.v1.json';
+
 export type ContentType = 'discover' | 'street-art' | 'interviews' | 'reviews';
 
 export type CitySlug = 'barcelona' | 'madrid';
@@ -12,29 +16,39 @@ export type ContentItem = {
   title: string;
   excerpt: string;
   date: string;
-
-  // UI: placeholder cover used until CMS provides real media.
   coverImageSrc: string;
   coverImageAlt: string;
-
-  // ── Weekly Discover fields (present only for weekly picks) ──────────────────
   episode?: number;
   trackArtist?: string;
   trackLabel?: string;
   trackReleaseDate?: string;
   bpm?: number;
   musicalKey?: string;
-  /** 1 = poor · 5 = essential */
   rating?: 1 | 2 | 3 | 4 | 5;
   verdict?: string;
   technicalBite?: string;
   moodScenario?: string;
-  /** 1 = minimal · 5 = full-throttle */
   energyLevel?: 1 | 2 | 3 | 4 | 5;
   setMoment?: SetMoment;
-  /** Spotify / SoundCloud / YouTube URL (passed to the matching embed component) */
   embedUrl?: string;
 };
+
+type ContentStore = {
+  source: 'versioned-json' | 'remote-json' | 'strapi' | 'seed-fallback';
+  itemsByType: Record<ContentType, ContentItem[]>;
+};
+
+type ContentRepository = {
+  name: ContentStore['source'];
+  load(): Promise<ContentStore>;
+};
+
+const CONTENT_TYPES: ContentType[] = [
+  'discover',
+  'street-art',
+  'interviews',
+  'reviews',
+];
 
 const CITY_SEQ: CitySlug[] = ['barcelona', 'madrid'];
 
@@ -43,6 +57,143 @@ const TAGS_BY_TYPE: Record<ContentType, string[]> = {
   'street-art': ['mural', 'graffiti', 'gallery', 'photo'],
   interviews: ['artist', 'promoter', 'crew', 'scene'],
   reviews: ['album', 'ep', 'live', 'label'],
+};
+
+function groupByType(items: ContentItem[]): Record<ContentType, ContentItem[]> {
+  const grouped: Record<ContentType, ContentItem[]> = {
+    discover: [],
+    'street-art': [],
+    interviews: [],
+    reviews: [],
+  };
+
+  for (const item of items) {
+    grouped[item.type].push(item);
+  }
+
+  for (const type of CONTENT_TYPES) {
+    grouped[type].sort((a, b) => (a.date < b.date ? 1 : -1));
+  }
+
+  return grouped;
+}
+
+function normalizeItem(input: Partial<ContentItem>): ContentItem | null {
+  if (!input.type || !CONTENT_TYPES.includes(input.type)) return null;
+  if (!input.slug || !input.title || !input.excerpt || !input.date) return null;
+  if (!input.city || (input.city !== 'barcelona' && input.city !== 'madrid')) {
+    return null;
+  }
+
+  return {
+    type: input.type,
+    city: input.city,
+    tags: Array.isArray(input.tags) ? input.tags : [],
+    slug: input.slug,
+    title: input.title,
+    excerpt: input.excerpt,
+    date: input.date,
+    coverImageSrc: input.coverImageSrc ?? '/placeholders/urban-cover.svg',
+    coverImageAlt: input.coverImageAlt ?? input.title,
+    episode: input.episode,
+    trackArtist: input.trackArtist,
+    trackLabel: input.trackLabel,
+    trackReleaseDate: input.trackReleaseDate,
+    bpm: input.bpm,
+    musicalKey: input.musicalKey,
+    rating: input.rating,
+    verdict: input.verdict,
+    technicalBite: input.technicalBite,
+    moodScenario: input.moodScenario,
+    energyLevel: input.energyLevel,
+    setMoment: input.setMoment,
+    embedUrl: input.embedUrl,
+  };
+}
+
+function parseItems(rows: unknown): ContentItem[] {
+  if (!Array.isArray(rows)) return [];
+
+  return rows
+    .map((row) => normalizeItem((row ?? {}) as Partial<ContentItem>))
+    .filter((item): item is ContentItem => item != null);
+}
+
+function getVersionedItems() {
+  return parseItems(versionedData.items);
+}
+
+const versionedJsonRepository: ContentRepository = {
+  name: 'versioned-json',
+  async load() {
+    const items = getVersionedItems();
+    return {
+      source: this.name,
+      itemsByType: groupByType(items),
+    };
+  },
+};
+
+const remoteJsonRepository: ContentRepository = {
+  name: 'remote-json',
+  async load() {
+    const url = process.env.CONTENT_JSON_URL;
+    if (!url) {
+      throw new Error('CONTENT_JSON_URL is required for remote-json source');
+    }
+
+    const response = await fetch(url, {
+      next: { revalidate: 30 },
+      headers: { Accept: 'application/json' },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Remote JSON request failed with status ${response.status}`);
+    }
+
+    const payload = (await response.json()) as { items?: unknown };
+    const items = parseItems(payload.items);
+
+    return {
+      source: this.name,
+      itemsByType: groupByType(items),
+    };
+  },
+};
+
+const strapiRepository: ContentRepository = {
+  name: 'strapi',
+  async load() {
+    const strapiUrl = (
+      process.env.STRAPI_URL ?? 'https://cms-cooldown-roan.ariancoro.com'
+    ).replace(/\/$/, '');
+
+    const response = await fetch(`${strapiUrl}/api/weekly-discover-feed`, {
+      next: { revalidate: 30 },
+      headers: { Accept: 'application/json' },
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Strapi weekly-discover-feed failed with status ${response.status}`,
+      );
+    }
+
+    const payload = (await response.json()) as { data?: unknown };
+    const weeklyDiscoverItems = parseItems(payload.data).map((item) => ({
+      ...item,
+      type: 'discover' as const,
+    }));
+    const versionedItems = getVersionedItems().filter(
+      (item) => item.type !== 'discover' || item.episode == null,
+    );
+    const mergedItems = [...weeklyDiscoverItems, ...versionedItems];
+
+    return {
+      source: this.name,
+      itemsByType: groupByType(mergedItems),
+    };
+  },
 };
 
 const seed = (type: ContentType, count: number, startAt = 1): ContentItem[] =>
@@ -58,109 +209,78 @@ const seed = (type: ContentType, count: number, startAt = 1): ContentItem[] =>
       slug: `${type}-${n}`,
       title: `${labelForType(type)} #${n} (${city})`,
       excerpt:
-        'Template content. This will be replaced by CMS-backed data in a later sprint.',
+        'Template content generated as a development fallback. Replace with CMS-backed data.',
       date: new Date(Date.now() - n * 86400000).toISOString().slice(0, 10),
       coverImageSrc: '/placeholders/urban-cover.svg',
       coverImageAlt: `${labelForType(type)} cover`,
     };
   });
 
-// ── Curated Weekly Discover picks ─────────────────────────────────────────────
-// These are the real editorial items. The seed() below fills the remaining slots
-// with template placeholders (starting at discover-4) until the CMS is live.
-const WEEKLY_DISCOVER_PICKS: ContentItem[] = [
-  {
-    type: 'discover',
-    city: 'barcelona',
-    tags: ['techno', 'peak-time'],
-    slug: 'discover-1',
-    title: 'Adam Beyer – Your Mind',
-    excerpt:
-      'El track con el que Beyer consolidó su dominio del peak time en los 2010. Drumcode en estado puro: máquina perfecta, mezcla clínica, sin concesiones.',
-    date: '2026-03-03',
-    coverImageSrc: '/placeholders/urban-cover.svg',
-    coverImageAlt: 'Adam Beyer – Your Mind',
-    episode: 1,
-    trackArtist: 'Adam Beyer',
-    trackLabel: 'Drumcode',
-    trackReleaseDate: 'Nov 2017',
-    bpm: 140,
-    musicalKey: 'A Minor',
-    rating: 4,
-    verdict:
-      'El ADN sueco de la primera generación (Cari Lekebusch, Hardfloor) está aquí modernizado con una mezcla impecable. La referencia directa a Jeff Mills es obvia pero honesta. Si tiene un defecto: el desarrollo es demasiado predecible — una máquina sin sorpresas. Pero cuando un track suena así de bien, las sorpresas sobran.',
-    technicalBite:
-      'El bombo lleva saturación analógica en la frecuencia de 160 Hz que simula un amplificador de válvulas empujado al límite: percibes el golpe como presión física, no como sonido. La snare tiene un decay ultracorto (<30 ms) que genera el latigazo característico del techno de Drumcode. El bajo opera casi exclusivamente por debajo de 80 Hz — inaudible por separado, devastador en un sistema de PA bien calibrado.',
-    moodScenario:
-      'Las 2am en el cuarto de máquinas. Estás prácticamente solo en la pista y no importa. El DJ está concentrado, la cabina elevada, y este track está haciendo exactamente lo que tiene que hacer.',
-    energyLevel: 5,
-    setMoment: 'peak-time',
-    embedUrl: 'https://open.spotify.com/track/1WsHKAuN9vDthcmimdqqaY',
-  },
-  {
-    type: 'discover',
-    city: 'barcelona',
-    tags: ['techno', 'minimal'],
-    slug: 'discover-2',
-    title: 'Ben Klock – Subzero',
-    excerpt:
-      'Uno de los documentos más importantes del sonido Berghain. Klock capturó en 2009 la esencia del techno de Friedrichshain mejor que nadie antes o después.',
-    date: '2026-02-24',
-    coverImageSrc: '/placeholders/urban-cover.svg',
-    coverImageAlt: 'Ben Klock – Subzero',
-    episode: 2,
-    trackArtist: 'Ben Klock',
-    trackLabel: 'Ostgut Ton',
-    trackReleaseDate: 'May 2009',
-    bpm: 135,
-    musicalKey: 'B Minor',
-    rating: 5,
-    verdict:
-      'Minimalismo radical que nunca cae en el vacío — cada capa tiene un propósito y un peso específico. La referencia no es Mills ni Plastikman: es el propio Berghain, como espacio acústico y como estado mental. Una pieza maestra que sigue siendo la referencia para productores que aspiran a entender qué es el techno de verdad.',
-    technicalBite:
-      'La arquitectura de frecuencias es diseño de precisión milimétrica: el espectro por debajo de 60 Hz está deliberadamente vacío — el track solo existe en su plenitud a través de los subgraves de Berghain. El pad central son cuatro notas en un loop de 32 pasos con micromodulación de amplitud a ~0.3 Hz que crea un respirar orgánico casi imperceptible. Nada es accidental.',
-    moodScenario:
-      'Berghain, cuarto piso, 7am del domingo. El DJ lleva seis horas tocando. Este track empieza y nadie puede explicar cómo ha llegado ahí ni cuándo se fueron los demás. Solo saben que no se van a mover.',
-    energyLevel: 3,
-    setMoment: 'closing',
-    embedUrl: 'https://open.spotify.com/track/0SSZR0TTrvDttPqiBQZkig',
-  },
-  {
-    type: 'discover',
-    city: 'madrid',
-    tags: ['techno', 'groove'],
-    slug: 'discover-3',
-    title: 'Amelie Lens – Follow',
-    excerpt:
-      'Lens en estado puro: bass line sinuosa, bombo hipnótico, cero adornos. La influencia del techno belga de los R&S years modernizada con producción absolutamente contemporánea.',
-    date: '2026-02-17',
-    coverImageSrc: '/placeholders/urban-cover.svg',
-    coverImageAlt: 'Amelie Lens – Follow',
-    episode: 3,
-    trackArtist: 'Amelie Lens',
-    trackLabel: 'Lenske Records',
-    trackReleaseDate: 'Feb 2020',
-    bpm: 130,
-    musicalKey: 'G Minor',
-    rating: 4,
-    verdict:
-      'Influencia directa del periodo Nuclear Waste / early R&S, pero la producción es de 2020 sin reservas. Lo que más sorprende es la economía de medios: cuatro elementos, todos necesarios, ninguno prescindible. Le falta un instante de tensión real antes del drop — el nivel de intensidad es constante y sin picos, lo que lo hace perfecto para el mix pero menos memorable como track independiente.',
-    technicalBite:
-      'La bass line tiene un filtro paso-bajo con cutoff micromodulado (~20 Hz de variación) que crea una sensación de tirón rítmico adictivo: el cerebro lo procesa como movimiento, no como sonido. La snare está sumada con ruido blanco de decay ultracorto que añade textura sin comprometer la limpieza. El bus master corre un VCA limiter agresivo que hace al track inmune a variaciones de ganancia — funciona igual al 60% que al 100% del PA.',
-    moodScenario:
-      'Primera noche en una ciudad que no conoces. Entras sin plan a un club del que no sabes el nombre. Este track está sonando. Una hora después no has salido de la pista.',
-    energyLevel: 4,
-    setMoment: 'peak-time',
-    embedUrl: 'https://open.spotify.com/track/5UsfWcP6SThHlZ4oAgx7ge',
-  },
-];
+function buildSeedFallbackStore(): ContentStore {
+  return {
+    source: 'seed-fallback',
+    itemsByType: {
+      discover: seed('discover', 12),
+      'street-art': seed('street-art', 12),
+      interviews: seed('interviews', 12),
+      reviews: seed('reviews', 12),
+    },
+  };
+}
 
-export const CONTENT: Record<ContentType, ContentItem[]> = {
-  discover: [...WEEKLY_DISCOVER_PICKS, ...seed('discover', 20, 4)],
-  'street-art': seed('street-art', 17),
-  interviews: seed('interviews', 12),
-  reviews: seed('reviews', 31),
-};
+function isSeedFallbackEnabled() {
+  const explicit = process.env.CONTENT_ENABLE_SEED_FALLBACK;
+  if (explicit === 'true') return true;
+  if (explicit === 'false') return false;
+  return process.env.NODE_ENV !== 'production';
+}
+
+function selectedRepository(): ContentRepository {
+  const source = process.env.CONTENT_SOURCE ?? 'strapi';
+
+  switch (source) {
+    case 'strapi':
+      return strapiRepository;
+    case 'remote-json':
+      return remoteJsonRepository;
+    case 'versioned-json':
+    default:
+      return versionedJsonRepository;
+  }
+}
+
+const loadStore = cache(async (): Promise<ContentStore> => {
+  const repo = selectedRepository();
+
+  try {
+    const store = await repo.load();
+    const hasData = CONTENT_TYPES.some((type) => store.itemsByType[type].length > 0);
+    if (hasData) {
+      return store;
+    }
+
+    throw new Error('Selected repository returned no content items');
+  } catch {
+    if (isSeedFallbackEnabled()) {
+      return buildSeedFallbackStore();
+    }
+
+    return {
+      source: 'versioned-json',
+      itemsByType: {
+        discover: [],
+        'street-art': [],
+        interviews: [],
+        reviews: [],
+      },
+    };
+  }
+});
+
+export async function getContentSourceMeta() {
+  const store = await loadStore();
+  return { source: store.source };
+}
 
 export function labelForType(type: ContentType) {
   switch (type) {
@@ -184,16 +304,18 @@ export function labelForCity(city: CitySlug) {
   }
 }
 
-export function getItem(type: ContentType, slug: string) {
-  return CONTENT[type].find((x) => x.slug === slug) ?? null;
+export async function getItem(type: ContentType, slug: string) {
+  const store = await loadStore();
+  return store.itemsByType[type].find((x) => x.slug === slug) ?? null;
 }
 
-export function getPagedItems(
+export async function getPagedItems(
   type: ContentType,
   page: number,
   pageSize: number,
 ) {
-  const items = CONTENT[type];
+  const store = await loadStore();
+  const items = store.itemsByType[type];
   const pageCount = Math.max(1, Math.ceil(items.length / pageSize));
   const safePage = Math.min(Math.max(1, page), pageCount);
   const start = (safePage - 1) * pageSize;
@@ -201,8 +323,9 @@ export function getPagedItems(
   return { items: slice, page: safePage, pageCount };
 }
 
-export function getDiscoverArchivePaged(page: number, pageSize: number) {
-  const items = CONTENT.discover.filter((item) => item.episode == null);
+export async function getDiscoverArchivePaged(page: number, pageSize: number) {
+  const store = await loadStore();
+  const items = store.itemsByType.discover.filter((item) => item.episode == null);
   const pageCount = Math.max(1, Math.ceil(items.length / pageSize));
   const safePage = Math.min(Math.max(1, page), pageCount);
   const start = (safePage - 1) * pageSize;
@@ -210,8 +333,9 @@ export function getDiscoverArchivePaged(page: number, pageSize: number) {
   return { items: slice, page: safePage, pageCount };
 }
 
-export function getDiscoverWeeklyNeighbors(slug: string) {
-  const weeklyItems = CONTENT.discover.filter((item) => item.episode != null);
+export async function getDiscoverWeeklyNeighbors(slug: string) {
+  const store = await loadStore();
+  const weeklyItems = store.itemsByType.discover.filter((item) => item.episode != null);
   const index = weeklyItems.findIndex((item) => item.slug === slug);
 
   if (index === -1) {
@@ -224,11 +348,12 @@ export function getDiscoverWeeklyNeighbors(slug: string) {
   };
 }
 
-export function getAllItems(): ContentItem[] {
-  return Object.values(CONTENT).flat();
+export async function getAllItems(): Promise<ContentItem[]> {
+  const store = await loadStore();
+  return Object.values(store.itemsByType).flat();
 }
 
-export function searchItems({
+export async function searchItems({
   q,
   type,
   city,
@@ -237,9 +362,10 @@ export function searchItems({
   type?: ContentType;
   city?: CitySlug;
 }) {
+  const items = await getAllItems();
   const normalized = (q ?? '').trim().toLowerCase();
 
-  return getAllItems().filter((item) => {
+  return items.filter((item) => {
     if (type && item.type !== type) return false;
     if (city && item.city !== city) return false;
 

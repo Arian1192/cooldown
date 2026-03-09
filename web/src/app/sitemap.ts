@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 import { getAllItems } from "@/lib/content";
 import { siteUrl } from "@/lib/site";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
   const staticRoutes = [
@@ -17,7 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/city/madrid",
   ];
 
-  const items = getAllItems().map((item) => ({
+  const items = (await getAllItems()).map((item) => ({
     url: siteUrl(`/${item.type}/${item.slug}`),
     lastModified: now,
     changeFrequency: "weekly" as const,

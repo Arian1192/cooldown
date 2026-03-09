@@ -18,5 +18,11 @@ export const env = {
       : 'http://localhost:3000'),
 
   // Server-only CMS endpoint
-  STRAPI_URL: process.env.STRAPI_URL ?? 'http://127.0.0.1:1337',
+  STRAPI_URL:
+    process.env.STRAPI_URL ?? 'https://cms-cooldown-roan.ariancoro.com',
+
+  // Server-only content source selector (`versioned-json` | `remote-json` | `strapi`)
+  CONTENT_SOURCE: process.env.CONTENT_SOURCE ?? 'strapi',
+  CONTENT_JSON_URL: process.env.CONTENT_JSON_URL,
+  CONTENT_ENABLE_SEED_FALLBACK: process.env.CONTENT_ENABLE_SEED_FALLBACK,
 };

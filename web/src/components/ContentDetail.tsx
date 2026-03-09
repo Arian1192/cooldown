@@ -7,14 +7,14 @@ import { EmbedDemo } from "@/components/embeds/EmbedDemo";
 import { articleJsonLd } from "@/lib/structuredData";
 import { siteUrl } from "@/lib/site";
 
-export function ContentDetail({
+export async function ContentDetail({
   type,
   slug,
 }: {
   type: ContentType;
   slug: string;
 }) {
-  const item = getItem(type, slug);
+  const item = await getItem(type, slug);
   if (!item) notFound();
 
   const jsonLd = articleJsonLd(item);

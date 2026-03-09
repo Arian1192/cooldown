@@ -14,7 +14,7 @@ function escapeXml(s: string) {
 }
 
 export async function GET() {
-  const items = getAllItems()
+  const items = (await getAllItems())
     .slice()
     .sort((a, b) => (a.date < b.date ? 1 : -1))
     .slice(0, 20);

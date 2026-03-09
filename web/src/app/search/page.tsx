@@ -37,7 +37,7 @@ export default async function SearchPage({
     ? (city as CitySlug)
     : undefined;
 
-  const results = searchItems({ q, type: typeFilter, city: cityFilter });
+  const results = await searchItems({ q, type: typeFilter, city: cityFilter });
 
   const captionParts: string[] = [];
   if (q?.trim()) captionParts.push(`Query: “${q.trim()}”`);

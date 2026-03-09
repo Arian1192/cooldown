@@ -16,7 +16,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const item =
-    (await getWeeklyDiscoverItemBySlug(slug)) ?? getItem('discover', slug);
+    (await getWeeklyDiscoverItemBySlug(slug)) ?? (await getItem('discover', slug));
   if (!item) return {};
 
   const title =

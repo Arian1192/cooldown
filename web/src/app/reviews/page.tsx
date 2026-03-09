@@ -20,7 +20,7 @@ export default async function ReviewsListPage({
   const { page } = await searchParams;
   const pageNum = Number(page ?? "1");
 
-  const { items, page: safePage, pageCount } = getPagedItems(
+  const { items, page: safePage, pageCount } = await getPagedItems(
     "reviews",
     Number.isFinite(pageNum) ? pageNum : 1,
     10,
