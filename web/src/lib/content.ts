@@ -165,7 +165,9 @@ const strapiRepository: ContentRepository = {
   name: 'strapi',
   async load() {
     const strapiUrl = (
-      process.env.STRAPI_URL ?? 'https://cms-cooldown-roan.ariancoro.com'
+      process.env.STRAPI_URL ??
+      process.env.CMS_BASE_URL ??
+      'https://cms-cooldown-roan.ariancoro.com'
     ).replace(/\/$/, '');
 
     const response = await fetch(`${strapiUrl}/api/weekly-discover-feed`, {
@@ -267,12 +269,7 @@ const loadStore = cache(async (): Promise<ContentStore> => {
 
     return {
       source: 'versioned-json',
-      itemsByType: {
-        discover: [],
-        'street-art': [],
-        interviews: [],
-        reviews: [],
-      },
+      itemsByType: groupByType(getVersionedItems()),
     };
   }
 });
