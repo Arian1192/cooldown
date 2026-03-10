@@ -6,18 +6,24 @@ import { ContentList } from "@/components/ContentList";
 import { getPagedItems } from "@/lib/content";
 import { basicOg } from "@/lib/seo";
 import { collectionPageJsonLd } from "@/lib/structuredData";
+import { getRequestLocale } from "@/lib/requestLocale";
 
-export const metadata: Metadata = basicOg({
-  title: "Interviews",
-  description: "Artist interviews.",
-  canonicalPath: "/interviews",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getRequestLocale();
+  return basicOg({
+    title: "Interviews",
+    description: locale === "en" ? "Artist interviews." : "Entrevistas con artistas.",
+    canonicalPath: "/interviews",
+    locale,
+  });
+}
 
 export default async function InterviewsListPage({
   searchParams,
 }: {
   searchParams: Promise<{ page?: string }>;
 }) {
+  const locale = await getRequestLocale();
   const { page } = await searchParams;
   const pageNum = Number(page ?? "1");
 
@@ -25,11 +31,13 @@ export default async function InterviewsListPage({
     "interviews",
     Number.isFinite(pageNum) ? pageNum : 1,
     10,
+    locale,
   );
   const jsonLd = collectionPageJsonLd({
     title: "Interviews",
-    description: "Artist interviews.",
+    description: locale === "en" ? "Artist interviews." : "Entrevistas con artistas.",
     path: "/interviews",
+    locale,
   });
 
   return (
@@ -40,7 +48,11 @@ export default async function InterviewsListPage({
       />
       <PageHeader
         title="Interviews"
-        caption="Artist interviews (template data)."
+        caption={
+          locale === "en"
+            ? "Artist interviews (template data)."
+            : "Entrevistas con artistas (datos de plantilla)."
+        }
       />
       <ContentList items={items} />
       <Pagination

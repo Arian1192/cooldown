@@ -1,6 +1,7 @@
 import { cache } from 'react';
 
 import versionedData from '@/data/content.v1.json';
+import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n';
 
 export type ContentType = 'discover' | 'street-art' | 'interviews' | 'reviews';
 
@@ -40,7 +41,7 @@ type ContentStore = {
 
 type ContentRepository = {
   name: ContentStore['source'];
-  load(): Promise<ContentStore>;
+  load(locale: Locale): Promise<ContentStore>;
 };
 
 const CONTENT_TYPES: ContentType[] = [
@@ -163,14 +164,14 @@ const remoteJsonRepository: ContentRepository = {
 
 const strapiRepository: ContentRepository = {
   name: 'strapi',
-  async load() {
+  async load(locale: Locale) {
     const strapiUrl = (
       process.env.STRAPI_URL ??
       process.env.CMS_BASE_URL ??
       'https://cms-cooldown-roan.ariancoro.com'
     ).replace(/\/$/, '');
 
-    const response = await fetch(`${strapiUrl}/api/weekly-discover-feed`, {
+    const response = await fetch(`${strapiUrl}/api/weekly-discover-feed?locale=${locale}`, {
       next: { revalidate: 30 },
       headers: { Accept: 'application/json' },
     });
@@ -257,11 +258,11 @@ function selectedRepository(): ContentRepository {
   }
 }
 
-const loadStore = cache(async (): Promise<ContentStore> => {
+const loadStore = cache(async (locale: Locale): Promise<ContentStore> => {
   const repo = selectedRepository();
 
   try {
-    const store = await repo.load();
+    const store = await repo.load(locale);
     const hasData = CONTENT_TYPES.some((type) => store.itemsByType[type].length > 0);
     if (hasData) {
       return store;
@@ -281,11 +282,12 @@ const loadStore = cache(async (): Promise<ContentStore> => {
 });
 
 export async function getContentSourceMeta() {
-  const store = await loadStore();
+  const store = await loadStore(DEFAULT_LOCALE);
   return { source: store.source };
 }
 
-export function labelForType(type: ContentType) {
+export function labelForType(type: ContentType, _locale: Locale = DEFAULT_LOCALE) {
+  void _locale;
   switch (type) {
     case 'discover':
       return 'Weekly Discover';
@@ -307,8 +309,8 @@ export function labelForCity(city: CitySlug) {
   }
 }
 
-export async function getItem(type: ContentType, slug: string) {
-  const store = await loadStore();
+export async function getItem(type: ContentType, slug: string, locale: Locale = DEFAULT_LOCALE) {
+  const store = await loadStore(locale);
   return store.itemsByType[type].find((x) => x.slug === slug) ?? null;
 }
 
@@ -316,8 +318,9 @@ export async function getPagedItems(
   type: ContentType,
   page: number,
   pageSize: number,
+  locale: Locale = DEFAULT_LOCALE,
 ) {
-  const store = await loadStore();
+  const store = await loadStore(locale);
   const items = store.itemsByType[type];
   const pageCount = Math.max(1, Math.ceil(items.length / pageSize));
   const safePage = Math.min(Math.max(1, page), pageCount);
@@ -326,8 +329,12 @@ export async function getPagedItems(
   return { items: slice, page: safePage, pageCount };
 }
 
-export async function getDiscoverArchivePaged(page: number, pageSize: number) {
-  const store = await loadStore();
+export async function getDiscoverArchivePaged(
+  page: number,
+  pageSize: number,
+  locale: Locale = DEFAULT_LOCALE,
+) {
+  const store = await loadStore(locale);
   const items = store.itemsByType.discover.filter((item) => item.episode == null);
   const pageCount = Math.max(1, Math.ceil(items.length / pageSize));
   const safePage = Math.min(Math.max(1, page), pageCount);
@@ -336,8 +343,11 @@ export async function getDiscoverArchivePaged(page: number, pageSize: number) {
   return { items: slice, page: safePage, pageCount };
 }
 
-export async function getDiscoverWeeklyNeighbors(slug: string) {
-  const store = await loadStore();
+export async function getDiscoverWeeklyNeighbors(
+  slug: string,
+  locale: Locale = DEFAULT_LOCALE,
+) {
+  const store = await loadStore(locale);
   const weeklyItems = store.itemsByType.discover.filter((item) => item.episode != null);
   const index = weeklyItems.findIndex((item) => item.slug === slug);
 
@@ -351,8 +361,8 @@ export async function getDiscoverWeeklyNeighbors(slug: string) {
   };
 }
 
-export async function getAllItems(): Promise<ContentItem[]> {
-  const store = await loadStore();
+export async function getAllItems(locale: Locale = DEFAULT_LOCALE): Promise<ContentItem[]> {
+  const store = await loadStore(locale);
   return Object.values(store.itemsByType).flat();
 }
 
@@ -360,12 +370,14 @@ export async function searchItems({
   q,
   type,
   city,
+  locale = DEFAULT_LOCALE,
 }: {
   q?: string;
   type?: ContentType;
   city?: CitySlug;
+  locale?: Locale;
 }) {
-  const items = await getAllItems();
+  const items = await getAllItems(locale);
   const normalized = (q ?? '').trim().toLowerCase();
 
   return items.filter((item) => {

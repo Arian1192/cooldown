@@ -3,34 +3,45 @@ import Link from 'next/link';
 
 import { EditorialList } from '@/components/EditorialList';
 import { SortToggle } from '@/components/ui/SortToggle';
+import { getRequestLocale } from '@/lib/requestLocale';
 import { basicOg } from '@/lib/seo';
 import { collectionPageJsonLd } from '@/lib/structuredData';
 import { getWeeklyDiscoverItems } from '@/lib/weeklyDiscover';
 
-export const metadata: Metadata = basicOg({
-  title: 'Inicio',
-  description:
-    'Weekly picks, street art, interviews and club culture from Barcelona and Madrid.',
-  canonicalPath: '/',
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getRequestLocale();
+  return basicOg({
+    title: 'Home',
+    description:
+      locale === 'en'
+        ? 'Weekly picks, street art, interviews and club culture from Barcelona and Madrid.'
+        : 'Picks semanales, arte urbano, entrevistas y cultura de club desde Barcelona y Madrid.',
+    canonicalPath: '/',
+    locale,
+  });
+}
 
 export default async function Home({
   searchParams,
 }: {
   searchParams: Promise<{ order?: string }>;
 }) {
+  const locale = await getRequestLocale();
   const { order } = await searchParams;
   const sortOrder: 'asc' | 'desc' =
     order === 'asc' ? 'asc' : 'desc';
 
-  const items = await getWeeklyDiscoverItems();
+  const items = await getWeeklyDiscoverItems(locale);
   const sorted =
     sortOrder === 'asc' ? [...items].reverse() : items;
   const jsonLd = collectionPageJsonLd({
     title: 'Inicio',
     description:
-      'Weekly picks, street art, interviews and club culture from Barcelona and Madrid.',
+      locale === 'en'
+        ? 'Weekly picks, street art, interviews and club culture from Barcelona and Madrid.'
+        : 'Picks semanales, arte urbano, entrevistas y cultura de club desde Barcelona y Madrid.',
     path: '/',
+    locale,
   });
 
   return (
@@ -42,7 +53,9 @@ export default async function Home({
       {/* Hero */}
       <section className="mb-16 border-b border-border pb-16">
         <p className="mb-5 font-display text-[11px] font-bold uppercase tracking-[0.32em] text-accent">
-          Music · Urban Art · Club Culture
+          {locale === 'en'
+            ? 'Music · Urban Art · Club Culture'
+            : 'Musica · Arte Urbano · Cultura de Club'}
         </p>
 
         <h1 className="font-display text-[clamp(5rem,14vw,11rem)] font-black uppercase leading-none tracking-[-0.04em]">
@@ -52,8 +65,9 @@ export default async function Home({
         </h1>
 
         <p className="mt-6 max-w-[52ch] text-base leading-relaxed text-muted">
-          Weekly picks, street art, interviews and club culture from Barcelona
-          and Madrid.
+          {locale === 'en'
+            ? 'Weekly picks, street art, interviews and club culture from Barcelona and Madrid.'
+            : 'Picks semanales, arte urbano, entrevistas y cultura de club desde Barcelona y Madrid.'}
         </p>
 
         <div className="mt-8 flex flex-wrap gap-3">
@@ -96,10 +110,12 @@ export default async function Home({
         </div>
 
         {sorted.length > 0 ? (
-          <EditorialList items={sorted} />
+          <EditorialList items={sorted} locale={locale} />
         ) : (
           <p className="py-12 text-center text-sm text-muted">
-            No hay picks todavía. ¡Vuelve pronto!
+            {locale === 'en'
+              ? 'No picks published yet. Check back soon.'
+              : 'No hay picks todavia. Vuelve pronto.'}
           </p>
         )}
       </section>

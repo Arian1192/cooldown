@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { env } from "@/env";
+import { localeToOpenGraph, type Locale } from "@/lib/i18n";
 import { siteUrl } from "@/lib/site";
 
 export function basicOg({
@@ -11,6 +12,7 @@ export function basicOg({
   imagePath = "/placeholders/urban-cover.svg",
   publishedTime,
   tags,
+  locale = "es",
 }: {
   title: string;
   description: string;
@@ -19,6 +21,7 @@ export function basicOg({
   imagePath?: string;
   publishedTime?: string;
   tags?: string[];
+  locale?: Locale;
 }): Metadata {
   const imageUrl = siteUrl(imagePath);
 
@@ -34,7 +37,7 @@ export function basicOg({
       url: canonicalPath,
       siteName: env.NEXT_PUBLIC_SITE_NAME,
       type,
-      locale: "es_ES",
+      locale: localeToOpenGraph(locale),
       images: [
         {
           url: imageUrl,

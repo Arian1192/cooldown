@@ -3,13 +3,16 @@ import Link from "next/link";
 import type { ContentItem } from "@/lib/content";
 import { labelForCity, labelForType } from "@/lib/content";
 import { cn } from "@/lib/cn";
+import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n";
 
 export function EditorialList({
   items,
   className,
+  locale = DEFAULT_LOCALE,
 }: {
   items: ContentItem[];
   className?: string;
+  locale?: Locale;
 }) {
   return (
     <div className={cn("divide-y divide-border", className)}>
@@ -34,7 +37,7 @@ export function EditorialList({
 
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
             <span className="font-display text-[10px] font-bold uppercase tracking-[0.2em] text-accent">
-              {labelForType(item.type)}
+              {labelForType(item.type, locale)}
             </span>
             <span className="h-1 w-1 rounded-full bg-border" aria-hidden />
             <span className="font-display text-[10px] font-bold uppercase tracking-[0.2em] text-muted">

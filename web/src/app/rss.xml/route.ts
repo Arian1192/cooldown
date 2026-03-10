@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { getAllItems, labelForType } from "@/lib/content";
 import { siteUrl } from "@/lib/site";
 import { env } from "@/env";
+import { LOCALE_COOKIE, resolveLocale } from "@/lib/i18n";
 
 function escapeXml(s: string) {
   return s
@@ -13,8 +14,9 @@ function escapeXml(s: string) {
     .replace(/'/g, "&apos;");
 }
 
-export async function GET() {
-  const items = (await getAllItems())
+export async function GET(request: NextRequest) {
+  const locale = resolveLocale(request.cookies.get(LOCALE_COOKIE)?.value);
+  const items = (await getAllItems(locale))
     .slice()
     .sort((a, b) => (a.date < b.date ? 1 : -1))
     .slice(0, 20);
@@ -24,7 +26,7 @@ export async function GET() {
   <channel>
     <title>${escapeXml(env.NEXT_PUBLIC_SITE_NAME)}</title>
     <link>${escapeXml(siteUrl("/"))}</link>
-    <description>${escapeXml("Latest posts (template RSS).")}</description>
+    <description>${escapeXml(locale === "en" ? "Latest posts." : "Ultimas publicaciones.")}</description>
     ${items
       .map((item) => {
         const url = siteUrl(`/${item.type}/${item.slug}`);
@@ -34,7 +36,7 @@ export async function GET() {
       <link>${escapeXml(url)}</link>
       <guid>${escapeXml(url)}</guid>
       <pubDate>${escapeXml(new Date(item.date).toUTCString())}</pubDate>
-      <category>${escapeXml(labelForType(item.type))}</category>
+      <category>${escapeXml(labelForType(item.type, locale))}</category>
       <description>${escapeXml(item.excerpt)}</description>
     </item>`;
       })

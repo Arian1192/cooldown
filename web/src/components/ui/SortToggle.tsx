@@ -5,7 +5,11 @@ import { usePathname, useSearchParams } from 'next/navigation';
 
 import { cn } from '@/lib/cn';
 
-export function SortToggle({ current }: { current: 'asc' | 'desc' }) {
+export function SortToggle({
+  current,
+}: {
+  current: 'asc' | 'desc';
+}) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
