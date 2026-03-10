@@ -24,12 +24,7 @@ export default async function DiscoverListPage({
 
   const items = await getWeeklyDiscoverItems();
   const sorted =
-    sortOrder === 'desc' ? [...items].reverse() : items;
-  const jsonLd = collectionPageJsonLd({
-    title: 'Weekly Discover',
-    description: 'Una joya de la música electrónica, cada semana.',
-    path: '/discover',
-  });
+    sortOrder === 'asc' ? [...items].reverse() : items;
 
   return (
     <div className="space-y-8">

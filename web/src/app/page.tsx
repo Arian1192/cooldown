@@ -25,13 +25,7 @@ export default async function Home({
 
   const items = await getWeeklyDiscoverItems();
   const sorted =
-    sortOrder === 'desc' ? [...items].reverse() : items;
-  const jsonLd = collectionPageJsonLd({
-    title: 'Home',
-    description:
-      'Weekly picks, street art, interviews and club culture from Barcelona and Madrid.',
-    path: '/',
-  });
+    sortOrder === 'asc' ? [...items].reverse() : items;
 
   return (
     <div>
