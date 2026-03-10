@@ -22,7 +22,7 @@ const CITIES: CitySlug[] = ['barcelona', 'madrid'];
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getRequestLocale();
   return basicOg({
-    title: locale === 'en' ? 'Search' : 'Buscar',
+    title: 'Search',
     description:
       locale === 'en'
         ? 'Search posts and filter by type/city.'
@@ -49,7 +49,7 @@ export default async function SearchPage({
 
   const results = await searchItems({ q, type: typeFilter, city: cityFilter, locale });
   const jsonLd = collectionPageJsonLd({
-    title: locale === 'en' ? 'Search' : 'Buscar',
+    title: 'Search',
     description:
       locale === 'en'
         ? 'Search posts and filter by type/city.'
@@ -59,9 +59,9 @@ export default async function SearchPage({
   });
 
   const captionParts: string[] = [];
-  if (q?.trim()) captionParts.push(`${locale === 'en' ? 'Query' : 'Consulta'}: "${q.trim()}"`);
-  if (typeFilter) captionParts.push(`${locale === 'en' ? 'Type' : 'Tipo'}: ${labelForType(typeFilter, locale)}`);
-  if (cityFilter) captionParts.push(`${locale === 'en' ? 'City' : 'Ciudad'}: ${labelForCity(cityFilter)}`);
+  if (q?.trim()) captionParts.push(`Query: "${q.trim()}"`);
+  if (typeFilter) captionParts.push(`Type: ${labelForType(typeFilter, locale)}`);
+  if (cityFilter) captionParts.push(`City: ${labelForCity(cityFilter)}`);
 
   return (
     <div className="space-y-5">
@@ -70,7 +70,7 @@ export default async function SearchPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <PageHeader
-        title={locale === 'en' ? 'Search' : 'Buscar'}
+        title="Search"
         caption={
           captionParts.length
             ? captionParts.join(' · ')
@@ -81,7 +81,7 @@ export default async function SearchPage({
       />
 
       <Card>
-        <CardTitle>{locale === 'en' ? 'Filters' : 'Filtros'}</CardTitle>
+        <CardTitle>Filters</CardTitle>
         <CardCaption>
           {locale === 'en'
             ? 'This is URL-driven. Use links below to apply filters.'
@@ -90,14 +90,14 @@ export default async function SearchPage({
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <div className="text-xs font-medium text-muted">
-              {locale === 'en' ? 'Content type' : 'Tipo de contenido'}
+              Content type
             </div>
             <div className="flex flex-wrap gap-2">
               <Link
                 className="rounded-md border border-border/60 px-3 py-1.5 text-sm"
                 href={{ pathname: '/search', query: { q, city } }}
               >
-                {locale === 'en' ? 'All' : 'Todo'}
+                All
               </Link>
               {CONTENT_TYPES.map((t) => (
                 <Link
@@ -113,14 +113,14 @@ export default async function SearchPage({
 
           <div className="space-y-2">
             <div className="text-xs font-medium text-muted">
-              {locale === 'en' ? 'City' : 'Ciudad'}
+              City
             </div>
             <div className="flex flex-wrap gap-2">
               <Link
                 className="rounded-md border border-border/60 px-3 py-1.5 text-sm"
                 href={{ pathname: '/search', query: { q, type } }}
               >
-                {locale === 'en' ? 'All' : 'Todo'}
+                All
               </Link>
               {CITIES.map((c) => (
                 <Link
@@ -139,13 +139,13 @@ export default async function SearchPage({
       {results.length ? (
         <div className="space-y-3">
           <div className="text-xs text-muted">
-            {results.length} {locale === 'en' ? 'results' : 'resultados'}
+            {results.length} results
           </div>
           <ContentList items={results} locale={locale} />
         </div>
       ) : (
         <Card>
-          <CardTitle>{locale === 'en' ? 'Nothing found' : 'Sin resultados'}</CardTitle>
+          <CardTitle>Nothing found</CardTitle>
           <CardCaption>
             {locale === 'en'
               ? 'Try removing filters or adjusting the query. Examples:'

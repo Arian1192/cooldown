@@ -286,16 +286,17 @@ export async function getContentSourceMeta() {
   return { source: store.source };
 }
 
-export function labelForType(type: ContentType, locale: Locale = DEFAULT_LOCALE) {
+export function labelForType(type: ContentType, _locale: Locale = DEFAULT_LOCALE) {
+  void _locale;
   switch (type) {
     case 'discover':
-      return locale === 'en' ? 'Weekly Discover' : 'Descubrimiento Semanal';
+      return 'Weekly Discover';
     case 'street-art':
-      return locale === 'en' ? 'Street Art Gallery' : 'Galeria de Arte Urbano';
+      return 'Street Art Gallery';
     case 'interviews':
-      return locale === 'en' ? 'Artist Interview' : 'Entrevista';
+      return 'Artist Interview';
     case 'reviews':
-      return locale === 'en' ? 'Album Review' : 'Resena de Album';
+      return 'Album Review';
   }
 }
 

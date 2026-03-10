@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 
 import { cn } from '@/lib/cn';
@@ -23,7 +22,7 @@ export function LanguageSwitcher({ locale }: { locale: Locale }) {
 
   return (
     <div className="inline-flex items-center gap-1 border border-border px-1 py-1">
-      <Link
+      <a
         href={hrefFor('es')}
         className={cn(
           'px-2 py-1 font-display text-[10px] font-bold uppercase tracking-[0.2em] transition-colors',
@@ -33,8 +32,8 @@ export function LanguageSwitcher({ locale }: { locale: Locale }) {
         )}
       >
         ES
-      </Link>
-      <Link
+      </a>
+      <a
         href={hrefFor('en')}
         className={cn(
           'px-2 py-1 font-display text-[10px] font-bold uppercase tracking-[0.2em] transition-colors',
@@ -44,7 +43,7 @@ export function LanguageSwitcher({ locale }: { locale: Locale }) {
         )}
       >
         EN
-      </Link>
+      </a>
     </div>
   );
 }

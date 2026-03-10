@@ -80,7 +80,7 @@ export default async function CityLandingPage({
         <Card>
           <CardTitle>
             <Link href="/street-art" className="hover:underline">
-              {locale === 'en' ? 'Street Art Gallery' : 'Galeria de Arte Urbano'}
+              Street Art Gallery
             </Link>
           </CardTitle>
           <CardCaption>
@@ -91,7 +91,7 @@ export default async function CityLandingPage({
         <Card>
           <CardTitle>
             <Link href="/discover" className="hover:underline">
-              {locale === 'en' ? 'Weekly Discover' : 'Descubrimiento Semanal'}
+              Weekly Discover
             </Link>
           </CardTitle>
           <CardCaption>
@@ -102,7 +102,7 @@ export default async function CityLandingPage({
         <Card>
           <CardTitle>
             <Link href="/interviews" className="hover:underline">
-              {locale === 'en' ? 'Interviews' : 'Entrevistas'}
+              Interviews
             </Link>
           </CardTitle>
           <CardCaption>
@@ -113,7 +113,7 @@ export default async function CityLandingPage({
         <Card>
           <CardTitle>
             <Link href="/reviews" className="hover:underline">
-              {locale === 'en' ? 'Reviews' : 'Resenas'}
+              Reviews
             </Link>
           </CardTitle>
           <CardCaption>
@@ -124,7 +124,7 @@ export default async function CityLandingPage({
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold tracking-tight">
-          {locale === 'en' ? 'Explore' : 'Explorar'}
+          Explore
         </h2>
         <div className="flex flex-wrap gap-2 text-sm">
           <Link className="rounded-md border border-border/60 px-3 py-1.5" href="/city/barcelona">

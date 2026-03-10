@@ -4,20 +4,12 @@ import { Suspense } from 'react';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import type { Locale } from '@/lib/i18n';
 
-const NAV_BY_LOCALE: Record<Locale, Array<{ href: string; label: string }>> = {
-  es: [
-    { href: '/discover', label: 'Discover' },
-    { href: '/street-art', label: 'Arte Urbano' },
-    { href: '/interviews', label: 'Entrevistas' },
-    { href: '/reviews', label: 'Resenas' },
-  ],
-  en: [
-    { href: '/discover', label: 'Discover' },
-    { href: '/street-art', label: 'Street Art' },
-    { href: '/interviews', label: 'Interviews' },
-    { href: '/reviews', label: 'Reviews' },
-  ],
-};
+const NAV = [
+  { href: '/discover', label: 'Discover' },
+  { href: '/street-art', label: 'Street Art' },
+  { href: '/interviews', label: 'Interviews' },
+  { href: '/reviews', label: 'Reviews' },
+];
 
 const CITIES = [
   { href: '/city/barcelona', label: 'BCN' },
@@ -44,7 +36,6 @@ export function SiteShell({
   children: React.ReactNode;
   locale: Locale;
 }) {
-  const nav = NAV_BY_LOCALE[locale];
   const tickerItems = TICKER_BY_LOCALE[locale];
 
   return (
@@ -68,7 +59,7 @@ export function SiteShell({
 
           <div className="hidden items-center gap-5 md:flex">
             <nav className="flex items-center gap-5">
-              {nav.map((item) => (
+              {NAV.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -96,7 +87,7 @@ export function SiteShell({
                 href="/search"
                 className="inline-flex items-center bg-accent px-3 py-1.5 font-display text-[11px] font-bold uppercase tracking-[0.18em] text-accent-foreground transition-opacity hover:opacity-85"
               >
-                {locale === 'en' ? 'Search' : 'Buscar'}
+                Search
               </Link>
             </nav>
 

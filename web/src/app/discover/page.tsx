@@ -11,7 +11,7 @@ import { getWeeklyDiscoverItems } from '@/lib/weeklyDiscover';
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getRequestLocale();
   return basicOg({
-    title: locale === 'en' ? 'Weekly Discover' : 'Descubrimiento Semanal',
+    title: 'Weekly Discover',
     description:
       locale === 'en'
         ? 'One electronic music gem every week.'
@@ -51,7 +51,7 @@ export default async function DiscoverListPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <PageHeader
-        title={locale === 'en' ? 'Weekly Discover' : 'Descubrimiento Semanal'}
+        title="Weekly Discover"
         caption={
           locale === 'en'
             ? 'One electronic music gem every week - Techno, House, Deep House.'
@@ -74,7 +74,7 @@ export default async function DiscoverListPage({
           </h2>
           <span className="h-px flex-1 bg-border" />
         </div>
-        <SortToggle current={sortOrder} locale={locale} />
+        <SortToggle current={sortOrder} />
       </div>
 
       {/* Weekly curated picks */}

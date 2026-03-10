@@ -1,19 +1,16 @@
 import Link from "next/link";
 
 import { cn } from "@/lib/cn";
-import type { Locale } from "@/lib/i18n";
 
 export function Pagination({
   basePath,
   page,
   pageCount,
-  locale,
   className,
 }: {
   basePath: string;
   page: number;
   pageCount: number;
-  locale: Locale;
   className?: string;
 }) {
   const prev = page > 1 ? page - 1 : null;
@@ -30,11 +27,11 @@ export function Pagination({
             href={{ pathname: basePath, query: { page: String(prev) } }}
             className="inline-flex items-center border border-border px-4 py-2 font-display text-[11px] font-bold uppercase tracking-[0.18em] transition-colors hover:border-accent hover:text-accent"
           >
-            ← {locale === "en" ? "Prev" : "Anterior"}
+            ← Prev
           </Link>
         ) : (
           <span className="inline-flex items-center border border-border/30 px-4 py-2 font-display text-[11px] font-bold uppercase tracking-[0.18em] text-muted/40">
-            ← {locale === "en" ? "Prev" : "Anterior"}
+            ← Prev
           </span>
         )}
 
@@ -43,11 +40,11 @@ export function Pagination({
             href={{ pathname: basePath, query: { page: String(next) } }}
             className="inline-flex items-center bg-accent px-4 py-2 font-display text-[11px] font-bold uppercase tracking-[0.18em] text-accent-foreground transition-opacity hover:opacity-90"
           >
-            {locale === "en" ? "Next" : "Siguiente"} →
+            Next →
           </Link>
         ) : (
           <span className="inline-flex items-center border border-border/30 px-4 py-2 font-display text-[11px] font-bold uppercase tracking-[0.18em] text-muted/40">
-            {locale === "en" ? "Next" : "Siguiente"} →
+            Next →
           </span>
         )}
       </div>

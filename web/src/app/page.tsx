@@ -11,7 +11,7 @@ import { getWeeklyDiscoverItems } from '@/lib/weeklyDiscover';
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getRequestLocale();
   return basicOg({
-    title: locale === 'en' ? 'Home' : 'Inicio',
+    title: 'Home',
     description:
       locale === 'en'
         ? 'Weekly picks, street art, interviews and club culture from Barcelona and Madrid.'
@@ -75,19 +75,19 @@ export default async function Home({
             href="/discover"
             className="inline-flex items-center bg-accent px-5 py-2.5 font-display text-[12px] font-bold uppercase tracking-[0.2em] text-accent-foreground transition-opacity hover:opacity-90"
           >
-            {locale === 'en' ? 'Explore' : 'Explorar'}
+            Explore
           </Link>
           <Link
             href="/street-art"
             className="inline-flex items-center border border-border px-5 py-2.5 font-display text-[12px] font-bold uppercase tracking-[0.2em] transition-colors hover:border-accent hover:text-accent"
           >
-            {locale === 'en' ? 'Street Art' : 'Arte Urbano'}
+            Street Art
           </Link>
           <Link
             href="/interviews"
             className="inline-flex items-center border border-border px-5 py-2.5 font-display text-[12px] font-bold uppercase tracking-[0.2em] transition-colors hover:border-accent hover:text-accent"
           >
-            {locale === 'en' ? 'Interviews' : 'Entrevistas'}
+            Interviews
           </Link>
         </div>
       </section>
@@ -96,15 +96,15 @@ export default async function Home({
       <section>
         <div className="mb-6 flex items-end justify-between">
           <h2 className="font-display text-[clamp(1.5rem,3vw,2.2rem)] font-black uppercase leading-none tracking-tight">
-            {locale === 'en' ? 'Latest' : 'Ultimos'}
+            Latest
           </h2>
           <div className="flex items-center gap-4">
-            <SortToggle current={sortOrder} locale={locale} />
+            <SortToggle current={sortOrder} />
             <Link
               href="/discover"
               className="font-display text-[11px] font-bold uppercase tracking-[0.18em] text-muted transition-colors hover:text-accent"
             >
-              {locale === 'en' ? 'All' : 'Todos'} →
+              All →
             </Link>
           </div>
         </div>

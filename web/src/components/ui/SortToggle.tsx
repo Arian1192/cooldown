@@ -4,14 +4,11 @@ import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 
 import { cn } from '@/lib/cn';
-import type { Locale } from '@/lib/i18n';
 
 export function SortToggle({
   current,
-  locale,
 }: {
   current: 'asc' | 'desc';
-  locale: Locale;
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -39,7 +36,7 @@ export function SortToggle({
         )}
         scroll={false}
       >
-        {locale === 'en' ? 'Newest' : 'Nuevos'}
+        Newest
       </Link>
       <Link
         href={hrefFor('asc')}
@@ -51,7 +48,7 @@ export function SortToggle({
         )}
         scroll={false}
       >
-        {locale === 'en' ? 'Oldest' : 'Antiguos'}
+        Oldest
       </Link>
     </div>
   );

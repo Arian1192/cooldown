@@ -83,10 +83,10 @@ export function WeeklyDiscoverCard({
   };
 
   const SET_MOMENT_LABEL: Record<string, string> = {
-    'warm-up': locale === 'en' ? 'Warm-up' : 'Calentamiento',
-    'peak-time': locale === 'en' ? 'Peak Time' : 'Hora Punta',
-    closing: locale === 'en' ? 'Closing' : 'Cierre',
-    'after-hours': locale === 'en' ? 'After Hours' : 'After',
+    'warm-up': 'Warm-up',
+    'peak-time': 'Peak Time',
+    closing: 'Closing',
+    'after-hours': 'After Hours',
   };
 
   return (
@@ -110,7 +110,7 @@ export function WeeklyDiscoverCard({
 
         {/* Episode chip */}
         <div className="absolute left-0 top-0">
-          <CardChip>{locale === 'en' ? 'Weekly' : 'Semana'} #{item.episode}</CardChip>
+          <CardChip>Weekly #{item.episode}</CardChip>
         </div>
 
         {/* BPM / Key / Set Moment bar — bottom */}
@@ -134,7 +134,7 @@ export function WeeklyDiscoverCard({
         >
           {/* Episode + artist label */}
           <p className="w-full font-display text-[10px] font-bold uppercase tracking-[0.24em] text-accent">
-            {locale === 'en' ? 'Weekly' : 'Semana'} #{item.episode} · {item.trackArtist}
+            Weekly #{item.episode} · {item.trackArtist}
           </p>
           {embedReady && item.embedUrl ? (
             <div className="w-full">

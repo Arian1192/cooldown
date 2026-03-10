@@ -125,22 +125,22 @@ export async function WeeklyDiscoverDetail({
   const jsonLd = articleJsonLd(item, locale);
   const canonical = siteUrl(`/discover/${item.slug}`);
   const copy = {
-    weekly: locale === 'en' ? 'Weekly Discover' : 'Descubrimiento Semanal',
-    idCard: locale === 'en' ? 'ID Card' : 'Ficha Tecnica',
-    review: locale === 'en' ? 'Rating' : 'Valoracion',
-    technical: locale === 'en' ? 'Technical Bite' : 'Mordida Tecnica',
-    mood: locale === 'en' ? 'Mood Scenario' : 'Escenario Imaginario',
-    prediction: locale === 'en' ? 'Track Prediction' : 'Prediccion de Pista',
-    energy: locale === 'en' ? 'Energy Level' : 'Nivel de Energia',
-    setMoment: locale === 'en' ? 'Set Moment' : 'Momento del Set',
-    permalink: locale === 'en' ? 'Permalink' : 'Enlace Permanente',
-    nav: locale === 'en' ? 'Weekly navigation' : 'Navegacion semanal',
+    weekly: 'Weekly Discover',
+    idCard: 'ID Card',
+    review: 'Rating',
+    technical: 'Technical Bite',
+    mood: 'Mood Scenario',
+    prediction: 'Track Prediction',
+    energy: 'Energy Level',
+    setMoment: 'Set Moment',
+    permalink: 'Permalink',
+    nav: 'Weekly navigation',
   };
   const setMomentLabel: Record<SetMoment, string> = {
-    'warm-up': locale === 'en' ? 'Warm-up' : 'Calentamiento',
-    'peak-time': locale === 'en' ? 'Peak Time' : 'Hora Punta',
-    closing: locale === 'en' ? 'Closing' : 'Cierre',
-    'after-hours': locale === 'en' ? 'After Hours' : 'After',
+    'warm-up': 'Warm-up',
+    'peak-time': 'Peak Time',
+    closing: 'Closing',
+    'after-hours': 'After Hours',
   };
 
   return (
@@ -194,12 +194,12 @@ export async function WeeklyDiscoverDetail({
         <SectionLabel>🗂️ {copy.idCard}</SectionLabel>
         <dl className="grid grid-cols-2 gap-x-8 gap-y-3 sm:grid-cols-3">
             {[
-            { term: locale === 'en' ? 'Artist' : 'Artista', def: item.trackArtist },
-            { term: locale === 'en' ? 'Label' : 'Sello', def: item.trackLabel },
-            { term: locale === 'en' ? 'Release' : 'Lanzamiento', def: item.trackReleaseDate },
+            { term: 'Artist', def: item.trackArtist },
+            { term: 'Label', def: item.trackLabel },
+            { term: 'Release', def: item.trackReleaseDate },
             { term: 'BPM', def: item.bpm?.toString() },
             { term: 'Key', def: item.musicalKey },
-            { term: locale === 'en' ? 'City' : 'Ciudad', def: labelForCity(item.city) },
+            { term: 'City', def: labelForCity(item.city) },
           ].map(({ term, def }) =>
             def ? (
               <div key={term}>
