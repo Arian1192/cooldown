@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 
 import { ContentDetail } from '@/components/ContentDetail';
 import { WeeklyDiscoverDetail } from '@/components/WeeklyDiscoverDetail';
-import { env } from '@/env';
 import { getItem, labelForCity } from '@/lib/content';
+import { basicOg } from '@/lib/seo';
 import {
   getWeeklyDiscoverItemBySlug,
   getWeeklyDiscoverNeighbors,
@@ -26,17 +26,18 @@ export async function generateMetadata({
   const description = item.verdict ?? item.excerpt;
   const canonical = `/discover/${slug}`;
 
-  return {
+  const metadata = basicOg({
     title,
     description,
-    alternates: { canonical },
-    openGraph: {
-      type: 'article',
-      title,
-      description,
-      url: canonical,
-      siteName: env.NEXT_PUBLIC_SITE_NAME,
-    },
+    canonicalPath: canonical,
+    type: 'article',
+    imagePath: item.coverImageSrc,
+    publishedTime: item.date,
+    tags: item.tags,
+  });
+
+  return {
+    ...metadata,
     other: {
       'article:section': 'Weekly Discover',
       'article:tag': item.tags.join(','),

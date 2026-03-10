@@ -4,6 +4,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { SortToggle } from '@/components/ui/SortToggle';
 import { WeeklyDiscoverCard } from '@/components/WeeklyDiscoverCard';
 import { basicOg } from '@/lib/seo';
+import { collectionPageJsonLd } from '@/lib/structuredData';
 import { getWeeklyDiscoverItems } from '@/lib/weeklyDiscover';
 
 export const metadata: Metadata = basicOg({
@@ -24,9 +25,18 @@ export default async function DiscoverListPage({
   const items = await getWeeklyDiscoverItems();
   const sorted =
     sortOrder === 'asc' ? [...items].reverse() : items;
+  const jsonLd = collectionPageJsonLd({
+    title: 'Weekly Discover',
+    description: 'Una joya de la música electrónica, cada semana.',
+    path: '/discover',
+  });
 
   return (
     <div className="space-y-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <PageHeader
         title="Weekly Discover"
         caption="Una joya de la música electrónica — Techno, House, Deep House — cada semana."

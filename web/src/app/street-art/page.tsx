@@ -5,6 +5,7 @@ import { Pagination } from "@/components/ui/Pagination";
 import { ContentList } from "@/components/ContentList";
 import { getPagedItems } from "@/lib/content";
 import { basicOg } from "@/lib/seo";
+import { collectionPageJsonLd } from "@/lib/structuredData";
 
 export const metadata: Metadata = basicOg({
   title: "Street Art Gallery",
@@ -25,9 +26,18 @@ export default async function StreetArtListPage({
     Number.isFinite(pageNum) ? pageNum : 1,
     10,
   );
+  const jsonLd = collectionPageJsonLd({
+    title: "Street Art Gallery",
+    description: "Street art drops and photo sets.",
+    path: "/street-art",
+  });
 
   return (
     <div className="space-y-5">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <PageHeader
         title="Street Art Gallery"
         caption="Street art drops and photo sets (template data)."

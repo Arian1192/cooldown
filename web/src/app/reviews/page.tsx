@@ -5,6 +5,7 @@ import { Pagination } from "@/components/ui/Pagination";
 import { ContentList } from "@/components/ContentList";
 import { getPagedItems } from "@/lib/content";
 import { basicOg } from "@/lib/seo";
+import { collectionPageJsonLd } from "@/lib/structuredData";
 
 export const metadata: Metadata = basicOg({
   title: "Reviews",
@@ -25,9 +26,18 @@ export default async function ReviewsListPage({
     Number.isFinite(pageNum) ? pageNum : 1,
     10,
   );
+  const jsonLd = collectionPageJsonLd({
+    title: "Reviews",
+    description: "Album reviews.",
+    path: "/reviews",
+  });
 
   return (
     <div className="space-y-5">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <PageHeader title="Reviews" caption="Album reviews (template data)." />
       <ContentList items={items} />
       <Pagination basePath="/reviews" page={safePage} pageCount={pageCount} />
