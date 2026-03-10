@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import type { CitySlug, ContentType } from "@/lib/content";
 import { basicOg } from "@/lib/seo";
+import { collectionPageJsonLd } from "@/lib/structuredData";
 
 export const metadata: Metadata = basicOg({
   title: "Search",
@@ -38,6 +39,11 @@ export default async function SearchPage({
     : undefined;
 
   const results = await searchItems({ q, type: typeFilter, city: cityFilter });
+  const jsonLd = collectionPageJsonLd({
+    title: "Search",
+    description: "Search posts and filter by type/city.",
+    path: "/search",
+  });
 
   const captionParts: string[] = [];
   if (q?.trim()) captionParts.push(`Query: “${q.trim()}”`);
@@ -46,6 +52,10 @@ export default async function SearchPage({
 
   return (
     <div className="space-y-5">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <PageHeader
         title="Search"
         caption={

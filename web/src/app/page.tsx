@@ -1,8 +1,18 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 
 import { EditorialList } from '@/components/EditorialList';
 import { SortToggle } from '@/components/ui/SortToggle';
+import { basicOg } from '@/lib/seo';
+import { collectionPageJsonLd } from '@/lib/structuredData';
 import { getWeeklyDiscoverItems } from '@/lib/weeklyDiscover';
+
+export const metadata: Metadata = basicOg({
+  title: 'Inicio',
+  description:
+    'Weekly picks, street art, interviews and club culture from Barcelona and Madrid.',
+  canonicalPath: '/',
+});
 
 export default async function Home({
   searchParams,
@@ -16,9 +26,19 @@ export default async function Home({
   const items = await getWeeklyDiscoverItems();
   const sorted =
     sortOrder === 'desc' ? [...items].reverse() : items;
+  const jsonLd = collectionPageJsonLd({
+    title: 'Home',
+    description:
+      'Weekly picks, street art, interviews and club culture from Barcelona and Madrid.',
+    path: '/',
+  });
 
   return (
     <div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Hero */}
       <section className="mb-16 border-b border-border pb-16">
         <p className="mb-5 font-display text-[11px] font-bold uppercase tracking-[0.32em] text-accent">

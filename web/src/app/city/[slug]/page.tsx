@@ -4,8 +4,8 @@ import { notFound } from "next/navigation";
 
 import { Card, CardCaption, CardTitle } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { basicOg } from "@/lib/seo";
 import { cityEventJsonLd } from "@/lib/structuredData";
-import { env } from "@/env";
 
 export async function generateMetadata({
   params,
@@ -18,18 +18,11 @@ export async function generateMetadata({
   const title = slug === "barcelona" ? "Barcelona" : "Madrid";
   const canonical = `/city/${slug}`;
 
-  return {
+  return basicOg({
     title,
     description: `City landing page for ${title}.`,
-    alternates: { canonical },
-    openGraph: {
-      type: "website",
-      title: `${title} · ${env.NEXT_PUBLIC_SITE_NAME}`,
-      description: `City landing page for ${title}.`,
-      url: canonical,
-      siteName: env.NEXT_PUBLIC_SITE_NAME,
-    },
-  };
+    canonicalPath: canonical,
+  });
 }
 
 type City = {

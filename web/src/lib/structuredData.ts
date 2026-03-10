@@ -45,3 +45,36 @@ export function cityEventJsonLd(city: "barcelona" | "madrid") {
     description: `City landing page for ${labelForCity(city)}.`,
   };
 }
+
+export function collectionPageJsonLd({
+  title,
+  description,
+  path,
+}: {
+  title: string;
+  description: string;
+  path: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: title,
+    description,
+    url: siteUrl(path),
+    isPartOf: {
+      "@type": "WebSite",
+      name: env.NEXT_PUBLIC_SITE_NAME,
+      url: siteUrl("/"),
+    },
+  };
+}
+
+export function websiteJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: env.NEXT_PUBLIC_SITE_NAME,
+    url: siteUrl("/"),
+    inLanguage: "es",
+  };
+}

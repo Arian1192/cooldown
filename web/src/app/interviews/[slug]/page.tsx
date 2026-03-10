@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { ContentDetail } from "@/components/ContentDetail";
 import { getItem } from "@/lib/content";
-import { env } from "@/env";
+import { basicOg } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -17,18 +17,15 @@ export async function generateMetadata({
   const description = item.excerpt;
   const canonical = `/interviews/${slug}`;
 
-  return {
+  return basicOg({
     title,
     description,
-    alternates: { canonical },
-    openGraph: {
-      type: "article",
-      title,
-      description,
-      url: canonical,
-      siteName: env.NEXT_PUBLIC_SITE_NAME,
-    },
-  };
+    canonicalPath: canonical,
+    type: "article",
+    imagePath: item.coverImageSrc,
+    publishedTime: item.date,
+    tags: item.tags,
+  });
 }
 
 export default async function InterviewDetailPage({
