@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { ContentDetail } from "@/components/ContentDetail";
 import { getItem } from "@/lib/content";
+import { getRequestLocale } from "@/lib/requestLocale";
 import { basicOg } from "@/lib/seo";
 
 export async function generateMetadata({
@@ -9,8 +10,9 @@ export async function generateMetadata({
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
+  const locale = await getRequestLocale();
   const { slug } = await params;
-  const item = await getItem("street-art", slug);
+  const item = await getItem("street-art", slug, locale);
   if (!item) return {};
 
   const title = item.title;
@@ -25,6 +27,7 @@ export async function generateMetadata({
     imagePath: item.coverImageSrc,
     publishedTime: item.date,
     tags: item.tags,
+    locale,
   });
 }
 
@@ -34,5 +37,6 @@ export default async function StreetArtDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  return <ContentDetail type="street-art" slug={slug} />;
+  const locale = await getRequestLocale();
+  return <ContentDetail type="street-art" slug={slug} locale={locale} />;
 }

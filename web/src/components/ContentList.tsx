@@ -3,8 +3,15 @@ import Link from "next/link";
 import type { ContentItem } from "@/lib/content";
 import { labelForCity, labelForType } from "@/lib/content";
 import { CardCaption, CardChip, CardMedia, CardTitle } from "@/components/ui/Card";
+import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n";
 
-export function ContentList({ items }: { items: ContentItem[] }) {
+export function ContentList({
+  items,
+  locale = DEFAULT_LOCALE,
+}: {
+  items: ContentItem[];
+  locale?: Locale;
+}) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       {items.map((item) => (
@@ -12,7 +19,7 @@ export function ContentList({ items }: { items: ContentItem[] }) {
           key={`${item.type}:${item.slug}`}
           image={{ src: item.coverImageSrc, width: 1200, height: 750 }}
           imageAlt={item.coverImageAlt}
-          category={labelForType(item.type)}
+          category={labelForType(item.type, locale)}
         >
           <div className="flex items-start justify-between gap-3">
             <CardTitle className="min-w-0">

@@ -6,18 +6,24 @@ import { ContentList } from "@/components/ContentList";
 import { getPagedItems } from "@/lib/content";
 import { basicOg } from "@/lib/seo";
 import { collectionPageJsonLd } from "@/lib/structuredData";
+import { getRequestLocale } from "@/lib/requestLocale";
 
-export const metadata: Metadata = basicOg({
-  title: "Street Art Gallery",
-  description: "Street art drops and photo sets.",
-  canonicalPath: "/street-art",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getRequestLocale();
+  return basicOg({
+    title: locale === "en" ? "Street Art Gallery" : "Galeria de Arte Urbano",
+    description: locale === "en" ? "Street art drops and photo sets." : "Nuevos drops de arte urbano y sets de fotos.",
+    canonicalPath: "/street-art",
+    locale,
+  });
+}
 
 export default async function StreetArtListPage({
   searchParams,
 }: {
   searchParams: Promise<{ page?: string }>;
 }) {
+  const locale = await getRequestLocale();
   const { page } = await searchParams;
   const pageNum = Number(page ?? "1");
 
@@ -25,11 +31,16 @@ export default async function StreetArtListPage({
     "street-art",
     Number.isFinite(pageNum) ? pageNum : 1,
     10,
+    locale,
   );
   const jsonLd = collectionPageJsonLd({
-    title: "Street Art Gallery",
-    description: "Street art drops and photo sets.",
+    title: locale === "en" ? "Street Art Gallery" : "Galeria de Arte Urbano",
+    description:
+      locale === "en"
+        ? "Street art drops and photo sets."
+        : "Nuevos drops de arte urbano y sets de fotos.",
     path: "/street-art",
+    locale,
   });
 
   return (
@@ -39,14 +50,19 @@ export default async function StreetArtListPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <PageHeader
-        title="Street Art Gallery"
-        caption="Street art drops and photo sets (template data)."
+        title={locale === "en" ? "Street Art Gallery" : "Galeria de Arte Urbano"}
+        caption={
+          locale === "en"
+            ? "Street art drops and photo sets (template data)."
+            : "Nuevos drops de arte urbano y sets de fotos (datos de plantilla)."
+        }
       />
-      <ContentList items={items} />
+      <ContentList items={items} locale={locale} />
       <Pagination
         basePath="/street-art"
         page={safePage}
         pageCount={pageCount}
+        locale={locale}
       />
     </div>
   );

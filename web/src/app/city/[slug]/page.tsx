@@ -1,46 +1,55 @@
-import type { Metadata } from "next";
-import Link from "next/link";
-import { notFound } from "next/navigation";
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
 
-import { Card, CardCaption, CardTitle } from "@/components/ui/Card";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { basicOg } from "@/lib/seo";
-import { cityEventJsonLd } from "@/lib/structuredData";
+import { Card, CardCaption, CardTitle } from '@/components/ui/Card';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { getRequestLocale } from '@/lib/requestLocale';
+import { basicOg } from '@/lib/seo';
+import { cityEventJsonLd } from '@/lib/structuredData';
 
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
+  const locale = await getRequestLocale();
   const { slug } = await params;
-  if (slug !== "barcelona" && slug !== "madrid") return {};
+  if (slug !== 'barcelona' && slug !== 'madrid') return {};
 
-  const title = slug === "barcelona" ? "Barcelona" : "Madrid";
+  const title = slug === 'barcelona' ? 'Barcelona' : 'Madrid';
   const canonical = `/city/${slug}`;
 
   return basicOg({
     title,
-    description: `City landing page for ${title}.`,
+    description:
+      locale === 'en'
+        ? `City landing page for ${title}.`
+        : `Pagina de ciudad para ${title}.`,
     canonicalPath: canonical,
+    locale,
   });
 }
 
 type City = {
-  slug: "barcelona" | "madrid";
+  slug: 'barcelona' | 'madrid';
   title: string;
-  caption: string;
+  captionEn: string;
+  captionEs: string;
 };
 
 const CITIES: Record<string, City> = {
   barcelona: {
-    slug: "barcelona",
-    title: "Barcelona",
-    caption: "Street art, club nights, and urban culture in BCN (template page).",
+    slug: 'barcelona',
+    title: 'Barcelona',
+    captionEn: 'Street art, club nights, and urban culture in BCN.',
+    captionEs: 'Arte urbano, noches de club y cultura urbana en BCN.',
   },
   madrid: {
-    slug: "madrid",
-    title: "Madrid",
-    caption: "Street art, club nights, and urban culture in MAD (template page).",
+    slug: 'madrid',
+    title: 'Madrid',
+    captionEn: 'Street art, club nights, and urban culture in MAD.',
+    captionEs: 'Arte urbano, noches de club y cultura urbana en MAD.',
   },
 };
 
@@ -49,11 +58,12 @@ export default async function CityLandingPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  const locale = await getRequestLocale();
   const { slug } = await params;
   const city = CITIES[slug];
   if (!city) notFound();
 
-  const jsonLd = cityEventJsonLd(city.slug);
+  const jsonLd = cityEventJsonLd(city.slug, locale);
 
   return (
     <div className="space-y-8">
@@ -61,59 +71,66 @@ export default async function CityLandingPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <PageHeader title={city.title} caption={city.caption} />
+      <PageHeader
+        title={city.title}
+        caption={locale === 'en' ? city.captionEn : city.captionEs}
+      />
 
       <section className="grid gap-3 sm:grid-cols-2">
         <Card>
           <CardTitle>
             <Link href="/street-art" className="hover:underline">
-              Street Art Gallery
+              {locale === 'en' ? 'Street Art Gallery' : 'Galeria de Arte Urbano'}
             </Link>
           </CardTitle>
-          <CardCaption>Recent drops & photo sets.</CardCaption>
+          <CardCaption>
+            {locale === 'en' ? 'Recent drops and photo sets.' : 'Ultimos drops y sets de fotos.'}
+          </CardCaption>
         </Card>
 
         <Card>
           <CardTitle>
             <Link href="/discover" className="hover:underline">
-              Weekly Discover
+              {locale === 'en' ? 'Weekly Discover' : 'Descubrimiento Semanal'}
             </Link>
           </CardTitle>
-          <CardCaption>Weekly picks from the scene.</CardCaption>
+          <CardCaption>
+            {locale === 'en' ? 'Weekly picks from the scene.' : 'Picks semanales de la escena.'}
+          </CardCaption>
         </Card>
 
         <Card>
           <CardTitle>
             <Link href="/interviews" className="hover:underline">
-              Interviews
+              {locale === 'en' ? 'Interviews' : 'Entrevistas'}
             </Link>
           </CardTitle>
-          <CardCaption>Artists, promoters, and crews.</CardCaption>
+          <CardCaption>
+            {locale === 'en' ? 'Artists, promoters, and crews.' : 'Artistas, promotores y crews.'}
+          </CardCaption>
         </Card>
 
         <Card>
           <CardTitle>
             <Link href="/reviews" className="hover:underline">
-              Reviews
+              {locale === 'en' ? 'Reviews' : 'Resenas'}
             </Link>
           </CardTitle>
-          <CardCaption>Albums, EPs, and live sets.</CardCaption>
+          <CardCaption>
+            {locale === 'en' ? 'Albums, EPs, and live sets.' : 'Albumes, EPs y sets en vivo.'}
+          </CardCaption>
         </Card>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold tracking-tight">Explore</h2>
+        <h2 className="text-lg font-semibold tracking-tight">
+          {locale === 'en' ? 'Explore' : 'Explorar'}
+        </h2>
         <div className="flex flex-wrap gap-2 text-sm">
-          <Link
-            className="rounded-md border border-border/60 px-3 py-1.5"
-            href="/city/barcelona"
-          >
+          <Link className="rounded-md border border-border/60 px-3 py-1.5" href="/city/barcelona">
             Barcelona
           </Link>
-          <Link
-            className="rounded-md border border-border/60 px-3 py-1.5"
-            href="/city/madrid"
-          >
+          <Link className="rounded-md border border-border/60 px-3 py-1.5" href="/city/madrid">
             Madrid
           </Link>
         </div>

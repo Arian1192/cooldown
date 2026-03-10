@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/Card';
 import { cn } from '@/lib/cn';
 import type { ContentItem } from '@/lib/content';
+import { type Locale } from '@/lib/i18n';
 
 const DISCOVER_PREVIEW_EVENT = 'discover-preview-activate';
 
@@ -51,7 +52,13 @@ function EmbedPreview({ url, title }: { url: string; title: string }) {
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-export function WeeklyDiscoverCard({ item }: { item: ContentItem }) {
+export function WeeklyDiscoverCard({
+  item,
+  locale,
+}: {
+  item: ContentItem;
+  locale: Locale;
+}) {
   const [embedReady, setEmbedReady] = useState(false);
 
   useEffect(() => {
@@ -76,10 +83,10 @@ export function WeeklyDiscoverCard({ item }: { item: ContentItem }) {
   };
 
   const SET_MOMENT_LABEL: Record<string, string> = {
-    'warm-up': 'Warm-up',
-    'peak-time': 'Peak Time',
-    closing: 'Closing',
-    'after-hours': 'After Hours',
+    'warm-up': locale === 'en' ? 'Warm-up' : 'Calentamiento',
+    'peak-time': locale === 'en' ? 'Peak Time' : 'Hora Punta',
+    closing: locale === 'en' ? 'Closing' : 'Cierre',
+    'after-hours': locale === 'en' ? 'After Hours' : 'After',
   };
 
   return (
@@ -103,7 +110,7 @@ export function WeeklyDiscoverCard({ item }: { item: ContentItem }) {
 
         {/* Episode chip */}
         <div className="absolute left-0 top-0">
-          <CardChip>Weekly #{item.episode}</CardChip>
+          <CardChip>{locale === 'en' ? 'Weekly' : 'Semana'} #{item.episode}</CardChip>
         </div>
 
         {/* BPM / Key / Set Moment bar — bottom */}
@@ -127,7 +134,7 @@ export function WeeklyDiscoverCard({ item }: { item: ContentItem }) {
         >
           {/* Episode + artist label */}
           <p className="w-full font-display text-[10px] font-bold uppercase tracking-[0.24em] text-accent">
-            Weekly #{item.episode} · {item.trackArtist}
+            {locale === 'en' ? 'Weekly' : 'Semana'} #{item.episode} · {item.trackArtist}
           </p>
           {embedReady && item.embedUrl ? (
             <div className="w-full">
@@ -160,7 +167,7 @@ export function WeeklyDiscoverCard({ item }: { item: ContentItem }) {
         </div>
 
         <div className="mt-2 flex items-center gap-3">
-          {item.rating != null && <StarRating rating={item.rating} />}
+          {item.rating != null && <StarRating rating={item.rating} locale={locale} />}
           <CardCaption>
             {item.trackLabel} · {item.trackReleaseDate}
           </CardCaption>
@@ -174,11 +181,11 @@ export function WeeklyDiscoverCard({ item }: { item: ContentItem }) {
   );
 }
 
-function StarRating({ rating }: { rating: number }) {
+function StarRating({ rating, locale }: { rating: number; locale: Locale }) {
   return (
     <div
       className="flex items-center gap-0.5"
-      aria-label={`${rating} out of 5`}
+      aria-label={`${rating} ${locale === 'en' ? 'out of 5' : 'de 5'}`}
     >
       {Array.from({ length: 5 }).map((_, i) => (
         <svg
