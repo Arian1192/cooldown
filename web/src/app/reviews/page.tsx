@@ -11,7 +11,7 @@ import { getRequestLocale } from "@/lib/requestLocale";
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getRequestLocale();
   return basicOg({
-    title: locale === "en" ? "Reviews" : "Resenas",
+    title: "Reviews",
     description: locale === "en" ? "Album reviews." : "Resenas de albumes.",
     canonicalPath: "/reviews",
     locale,
@@ -34,7 +34,7 @@ export default async function ReviewsListPage({
     locale,
   );
   const jsonLd = collectionPageJsonLd({
-    title: locale === "en" ? "Reviews" : "Resenas",
+    title: "Reviews",
     description: locale === "en" ? "Album reviews." : "Resenas de albumes.",
     path: "/reviews",
     locale,
@@ -47,15 +47,15 @@ export default async function ReviewsListPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <PageHeader
-        title={locale === "en" ? "Reviews" : "Resenas"}
+        title="Reviews"
         caption={
           locale === "en"
             ? "Album reviews (template data)."
             : "Resenas de albumes (datos de plantilla)."
         }
       />
-      <ContentList items={items} locale={locale} />
-      <Pagination basePath="/reviews" page={safePage} pageCount={pageCount} locale={locale} />
+      <ContentList items={items} />
+      <Pagination basePath="/reviews" page={safePage} pageCount={pageCount} />
     </div>
   );
 }

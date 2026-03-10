@@ -11,7 +11,7 @@ import { getRequestLocale } from "@/lib/requestLocale";
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getRequestLocale();
   return basicOg({
-    title: locale === "en" ? "Street Art Gallery" : "Galeria de Arte Urbano",
+    title: "Street Art Gallery",
     description: locale === "en" ? "Street art drops and photo sets." : "Nuevos drops de arte urbano y sets de fotos.",
     canonicalPath: "/street-art",
     locale,
@@ -34,7 +34,7 @@ export default async function StreetArtListPage({
     locale,
   );
   const jsonLd = collectionPageJsonLd({
-    title: locale === "en" ? "Street Art Gallery" : "Galeria de Arte Urbano",
+    title: "Street Art Gallery",
     description:
       locale === "en"
         ? "Street art drops and photo sets."
@@ -50,19 +50,18 @@ export default async function StreetArtListPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <PageHeader
-        title={locale === "en" ? "Street Art Gallery" : "Galeria de Arte Urbano"}
+        title="Street Art Gallery"
         caption={
           locale === "en"
             ? "Street art drops and photo sets (template data)."
             : "Nuevos drops de arte urbano y sets de fotos (datos de plantilla)."
         }
       />
-      <ContentList items={items} locale={locale} />
+      <ContentList items={items} />
       <Pagination
         basePath="/street-art"
         page={safePage}
         pageCount={pageCount}
-        locale={locale}
       />
     </div>
   );
