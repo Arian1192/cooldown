@@ -1,7 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
+
+import { reportClientError } from '@/lib/observability/client';
 
 function detectLocale() {
   if (typeof navigator === 'undefined') return 'en';
@@ -14,6 +16,12 @@ export default function GlobalError({
   error: Error & { digest?: string };
 }) {
   const locale = useMemo(() => detectLocale(), []);
+  useEffect(() => {
+    reportClientError(error, {
+      source: 'app/global-error',
+      digest: error.digest ?? null,
+    });
+  }, [error]);
 
   return (
     <html lang={locale}>

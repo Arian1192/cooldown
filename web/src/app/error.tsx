@@ -3,6 +3,7 @@
 import { useEffect, useMemo } from 'react';
 
 import { PageHeader } from '@/components/ui/PageHeader';
+import { reportClientError } from '@/lib/observability/client';
 
 function detectLocale() {
   if (typeof navigator === 'undefined') return 'en';
@@ -19,7 +20,10 @@ export default function Error({
   const locale = useMemo(() => detectLocale(), []);
 
   useEffect(() => {
-    console.error(error);
+    reportClientError(error, {
+      source: 'app/error',
+      digest: error.digest ?? null,
+    });
   }, [error]);
 
   return (

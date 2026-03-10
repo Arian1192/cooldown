@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 
 import { SoundCloudEmbed } from '@/components/embeds/SoundCloudEmbed';
 import { SpotifyEmbed } from '@/components/embeds/SpotifyEmbed';
+import { TrackEventOnRender } from '@/components/TrackEventOnRender';
 import { YouTubeEmbed } from '@/components/embeds/YouTubeEmbed';
 import { cn } from '@/lib/cn';
 import type { ContentItem, SetMoment } from '@/lib/content';
@@ -145,6 +146,10 @@ export async function WeeklyDiscoverDetail({
 
   return (
     <article className="mx-auto max-w-3xl space-y-0">
+      <TrackEventOnRender
+        name="detail_viewed"
+        payload={{ type: item.type, slug: item.slug, city: item.city }}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

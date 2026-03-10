@@ -5,6 +5,7 @@ import { getItem, labelForCity, labelForType } from "@/lib/content";
 import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n";
 
 import { EmbedDemo } from "@/components/embeds/EmbedDemo";
+import { TrackEventOnRender } from "@/components/TrackEventOnRender";
 import { articleJsonLd } from "@/lib/structuredData";
 import { siteUrl } from "@/lib/site";
 
@@ -26,6 +27,10 @@ export async function ContentDetail({
 
   return (
     <article className="space-y-6">
+      <TrackEventOnRender
+        name="detail_viewed"
+        payload={{ type: item.type, slug: item.slug, city: item.city }}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

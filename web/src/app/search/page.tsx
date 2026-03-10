@@ -2,10 +2,12 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 import { ContentList } from '@/components/ContentList';
+import { TrackEventOnRender } from '@/components/TrackEventOnRender';
 import { Card, CardCaption, CardTitle } from '@/components/ui/Card';
 import { PageHeader } from '@/components/ui/PageHeader';
 import type { CitySlug, ContentType } from '@/lib/content';
 import { labelForCity, labelForType, searchItems } from '@/lib/content';
+import { logServerEvent } from '@/lib/observability/server';
 import { getRequestLocale } from '@/lib/requestLocale';
 import { basicOg } from '@/lib/seo';
 import { collectionPageJsonLd } from '@/lib/structuredData';
@@ -46,6 +48,15 @@ export default async function SearchPage({
   const cityFilter = CITIES.includes(city as CitySlug)
     ? (city as CitySlug)
     : undefined;
+  const query = q?.trim() ?? '';
+
+  logServerEvent('search_performed', {
+    source: 'search-page',
+    query: query || null,
+    type: typeFilter ?? null,
+    city: cityFilter ?? null,
+    locale,
+  });
 
   const results = await searchItems({ q, type: typeFilter, city: cityFilter, locale });
   const jsonLd = collectionPageJsonLd({
@@ -65,6 +76,16 @@ export default async function SearchPage({
 
   return (
     <div className="space-y-5">
+      <TrackEventOnRender
+        name="search_performed"
+        payload={{
+          query: query || null,
+          type: typeFilter ?? null,
+          city: cityFilter ?? null,
+          resultCount: results.length,
+          locale,
+        }}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

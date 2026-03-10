@@ -2,6 +2,7 @@ import { cache } from 'react';
 
 import versionedData from '@/data/content.v1.json';
 import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n';
+import { logServerError, logServerEvent } from '@/lib/observability/server';
 
 export type ContentType = 'discover' | 'street-art' | 'interviews' | 'reviews';
 
@@ -269,11 +270,24 @@ const loadStore = cache(async (locale: Locale): Promise<ContentStore> => {
     }
 
     throw new Error('Selected repository returned no content items');
-  } catch {
+  } catch (error) {
+    logServerError('content.load_store', error, {
+      repository: repo.name,
+      seedFallbackEnabled: isSeedFallbackEnabled(),
+    });
+
     if (isSeedFallbackEnabled()) {
+      logServerEvent('runtime_error', {
+        source: 'content.load_store',
+        fallback: 'seed-fallback',
+      });
       return buildSeedFallbackStore();
     }
 
+    logServerEvent('runtime_error', {
+      source: 'content.load_store',
+      fallback: 'versioned-json',
+    });
     return {
       source: 'versioned-json',
       itemsByType: groupByType(getVersionedItems()),
