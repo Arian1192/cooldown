@@ -9,6 +9,7 @@ import {
 
 beforeAll(() => {
   process.env.CONTENT_SOURCE = 'versioned-json';
+  process.env.CONTENT_ENABLE_SEED_FALLBACK = 'false';
 });
 
 describe('content repository helpers', () => {

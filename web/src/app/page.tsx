@@ -33,9 +33,9 @@ export default async function Home({
 
   const items = await getWeeklyDiscoverItems(locale);
   const sorted =
-    sortOrder === 'desc' ? [...items].reverse() : items;
+    sortOrder === 'asc' ? [...items].reverse() : items;
   const jsonLd = collectionPageJsonLd({
-    title: 'Home',
+    title: 'Inicio',
     description:
       locale === 'en'
         ? 'Weekly picks, street art, interviews and club culture from Barcelona and Madrid.'

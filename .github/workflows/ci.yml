@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [master]
 
 jobs:
   web:
@@ -15,19 +15,63 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
           cache-dependency-path: web/package-lock.json
+
+      - name: Activate npm version
+        run: |
+          corepack enable
+          corepack prepare npm@10.9.4 --activate
+
+      - name: Toolchain check
+        run: npm run check:toolchain
 
       - name: Install
         run: npm ci
 
+      - name: Commit convention check
+        run: |
+          set -euo pipefail
+          RE='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9._-]+\))?!?: .+'
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            RANGE="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}"
+          else
+            if git rev-parse HEAD~1 >/dev/null 2>&1; then
+              RANGE="HEAD~1..HEAD"
+            else
+              RANGE="HEAD"
+            fi
+          fi
+
+          MESSAGES="$(git log --format=%s ${RANGE})"
+          [ -n "$MESSAGES" ] || { echo "No commit messages to validate in range ${RANGE}"; exit 0; }
+
+          echo "Validating commit messages in range ${RANGE}"
+          while IFS= read -r msg; do
+            if echo "$msg" | grep -Eq '^Merge '; then
+              echo "Skipping merge commit subject: $msg"
+              continue
+            fi
+            if ! echo "$msg" | grep -Eq "$RE"; then
+              echo "Invalid commit message: $msg"
+              echo "Expected Conventional Commit, e.g. feat(web): add hero section"
+              exit 1
+            fi
+          done <<< "$MESSAGES"
+
       - name: Lint
         run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
 
       - name: Test
         run: npm run test

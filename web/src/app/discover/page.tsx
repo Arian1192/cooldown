@@ -33,7 +33,7 @@ export default async function DiscoverListPage({
 
   const items = await getWeeklyDiscoverItems(locale);
   const sorted =
-    sortOrder === 'desc' ? [...items].reverse() : items;
+    sortOrder === 'asc' ? [...items].reverse() : items;
   const jsonLd = collectionPageJsonLd({
     title: 'Weekly Discover',
     description:
