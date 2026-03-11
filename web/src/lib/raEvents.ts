@@ -171,6 +171,7 @@ async function fetchCityEventsFromGraphql(
   dateRange: { fromDate?: string; toDate?: string },
 ): Promise<RaEvent[]> {
   const config = CITY_CONFIG[city];
+  const safePageSize = Math.min(Math.max(pageSize, 10), 80);
   const fromDate =
     dateRange.fromDate ??
     new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
@@ -183,7 +184,7 @@ async function fetchCityEventsFromGraphql(
     const payload = await fetchGraphqlEventsPage({
       areaId: config.areaId,
       fromDate,
-      pageSize,
+      pageSize: safePageSize,
       page,
     });
     const rawItems = payload.data?.facetedSearch?.results ?? [];
@@ -218,7 +219,7 @@ async function fetchCityEventsFromGraphql(
       });
     }
 
-    if (rawItems.length < pageSize) {
+    if (rawItems.length < safePageSize) {
       break;
     }
   }
