@@ -41,10 +41,10 @@ const CITY_CONFIG: Record<EventCity, { pageUrl: string; areaId: number }> = {
 const CLOUDLFARE_MARKERS = ['cf-error-details', 'Attention Required! | Cloudflare'];
 
 const GRAPHQL_QUERY = `
-query GetUpcomingEvents($areaId: Int!, $fromDate: DateTime!, $toDate: DateTime!, $pageSize: Int!, $page: Int!) {
+query GetUpcomingEvents($areaId: Int!, $fromDate: DateTime!, $pageSize: Int!, $page: Int!) {
   facetedSearch(
     types: [EVENT]
-    filters: { areas: { eq: $areaId }, date: { gte: $fromDate, lte: $toDate } }
+    filters: { areas: { eq: $areaId }, date: { gte: $fromDate } }
     page: $page
     pageSize: $pageSize
     sort: { date: { priority: 1, order: ASCENDING } }
@@ -174,7 +174,7 @@ async function fetchCityEventsFromGraphql(
   const fromDate =
     dateRange.fromDate ??
     new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-  const toDate = dateRange.toDate ?? addDaysIso(fromDate, 90);
+  const toDate = dateRange.toDate;
 
   const deduped = new Map<string, RaEvent>();
   const maxPages = 8;
@@ -183,7 +183,6 @@ async function fetchCityEventsFromGraphql(
     const payload = await fetchGraphqlEventsPage({
       areaId: config.areaId,
       fromDate,
-      toDate,
       pageSize,
       page,
     });
@@ -224,23 +223,20 @@ async function fetchCityEventsFromGraphql(
     }
   }
 
-  return [...deduped.values()].sort(
-    (a, b) =>
-      new Date(a.startDateIso).getTime() -
-      new Date(b.startDateIso).getTime(),
+  const sorted = [...deduped.values()].sort(
+    (a, b) => new Date(a.startDateIso).getTime() - new Date(b.startDateIso).getTime(),
   );
+  return clampEventsByDateRange(sorted, fromDate, toDate);
 }
 
 async function fetchGraphqlEventsPage({
   areaId,
   fromDate,
-  toDate,
   pageSize,
   page,
 }: {
   areaId: number;
   fromDate: string;
-  toDate: string;
   pageSize: number;
   page: number;
 }): Promise<{
@@ -277,7 +273,6 @@ async function fetchGraphqlEventsPage({
       variables: {
         areaId,
         fromDate,
-        toDate,
         pageSize,
         page,
       },
@@ -335,12 +330,6 @@ function clampEventsByDateRange(
     if (toDate && day > toDate) return false;
     return true;
   });
-}
-
-function addDaysIso(yyyyMmDd: string, days: number): string {
-  const date = new Date(`${yyyyMmDd}T00:00:00.000Z`);
-  date.setUTCDate(date.getUTCDate() + days);
-  return date.toISOString().slice(0, 10);
 }
 
 function resolveGraphqlImageUrl(event: {
