@@ -19,6 +19,7 @@ npm run dev
 
 ```bash
 npm run lint  # eslint + `eslint-config-next` (core-web-vitals)
+npm run test  # vitest (unit + route smoke)
 npm run build # `next build`
 ```
 

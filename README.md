@@ -25,7 +25,7 @@ npm run start
 ## CI
 
 GitHub Actions workflow: `.github/workflows/ci.yml`
-- runs `npm ci`, `npm run lint`, `npm run build` in `web/`
+- runs `npm ci`, `npm run lint`, `npm run test`, `npm run build` in `web/`
 
 ## Internal linking conventions
 

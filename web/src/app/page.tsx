@@ -89,6 +89,12 @@ export default async function Home({
           >
             Interviews
           </Link>
+          <Link
+            href="/events"
+            className="inline-flex items-center border border-border px-5 py-2.5 font-display text-[12px] font-bold uppercase tracking-[0.2em] transition-colors hover:border-accent hover:text-accent"
+          >
+            Events
+          </Link>
         </div>
       </section>
 
