@@ -41,32 +41,48 @@ export default async function EventsPage({
   const cityFilter = CITY_FILTERS.includes(city as EventCityFilter)
     ? (city as EventCityFilter)
     : 'all';
-  const currentMonth = new Date().toISOString().slice(0, 7);
+  const today = new Date().toISOString().slice(0, 10);
+  const currentMonth = today.slice(0, 7);
   const requestedMonth = MONTH_FORMAT.test(month ?? '') ? (month as string) : undefined;
   const requestedDay = DAY_FORMAT.test(day ?? '') ? (day as string) : undefined;
-  const activeMonth = requestedDay?.slice(0, 7) ?? requestedMonth ?? currentMonth;
-  const monthDate = toDateAtUtc(activeMonth);
-  const today = new Date().toISOString().slice(0, 10);
-  const fromDate = activeMonth === currentMonth ? today : firstDayOfMonth(activeMonth);
-  const toDate = lastDayOfMonth(activeMonth);
+  const horizonEnd = addDays(today, 120);
 
   const { events, unavailableCities, generatedAtIso } =
     await getResidentAdvisorEvents({
       city: cityFilter,
-      limit: 200,
-      fromDate,
-      toDate,
+      limit: 500,
+      fromDate: today,
+      toDate: horizonEnd,
     });
 
-  const visibleEvents = events.filter((event) => event.startDateIso.slice(0, 10) >= today);
-  const byDay = groupByDay(visibleEvents);
+  const availableMonths = [...new Set(events.map((event) => event.startDateIso.slice(0, 7)))].sort();
+  const requestedMonthFromDay = requestedDay?.slice(0, 7);
+  const activeMonthCandidate = requestedMonthFromDay ?? requestedMonth ?? availableMonths[0] ?? currentMonth;
+  const activeMonth = availableMonths.includes(activeMonthCandidate)
+    ? activeMonthCandidate
+    : availableMonths[0] ?? currentMonth;
+  const monthDate = toDateAtUtc(activeMonth);
+  const monthStart = firstDayOfMonth(activeMonth);
+  const monthEnd = lastDayOfMonth(activeMonth);
+  const defaultRangeStart = activeMonth === currentMonth ? today : monthStart;
+  const rangeStart =
+    requestedDay && requestedDay.startsWith(activeMonth) && requestedDay >= defaultRangeStart
+      ? requestedDay
+      : defaultRangeStart;
+
+  const monthEvents = events.filter((event) => {
+    const dayKey = event.startDateIso.slice(0, 10);
+    return dayKey >= monthStart && dayKey <= monthEnd && dayKey >= rangeStart;
+  });
+
+  const byDay = groupByDay(monthEvents);
   const calendarDays = buildCalendarDays(activeMonth, byDay);
   const defaultDay =
     calendarDays.find((entry) => entry.count > 0)?.dayKey ??
-    (activeMonth === currentMonth ? today : firstDayOfMonth(activeMonth));
+    rangeStart;
 
   const selectedDay =
-    requestedDay && requestedDay.startsWith(activeMonth)
+    requestedDay && requestedDay.startsWith(activeMonth) && requestedDay >= rangeStart
       ? requestedDay
       : defaultDay;
 
@@ -77,7 +93,7 @@ export default async function EventsPage({
     month: 'long',
     year: 'numeric',
   }).format(monthDate);
-  const monthOptions = buildMonthOptions(activeMonth, 1, 2);
+  const monthOptions = availableMonths.length > 0 ? availableMonths : [activeMonth];
 
   const caption =
     locale === 'en'
@@ -134,7 +150,7 @@ export default async function EventsPage({
         </div>
       </Card>
 
-      {events.length > 0 ? (
+      {monthEvents.length > 0 ? (
         <>
           <Card className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -260,7 +276,7 @@ export default async function EventsPage({
 
           <section className="space-y-4">
             <h2 className="font-display text-[clamp(1.3rem,2.5vw,1.8rem)] font-black uppercase tracking-tight">
-              {locale === 'en' ? 'Month timeline' : 'Timeline mensual'}
+              {locale === 'en' ? 'From selected date to month end' : 'Desde fecha seleccionada hasta fin de mes'}
             </h2>
 
             {monthDayEntries.length > 0 ? (
@@ -438,25 +454,17 @@ function lastDayOfMonth(yyyyMm: string): string {
   return new Date(Date.UTC(year, month + 1, 0)).toISOString().slice(0, 10);
 }
 
-function buildMonthOptions(yyyyMm: string, prev: number, next: number): string[] {
-  const source = toDateAtUtc(yyyyMm);
-  const year = source.getUTCFullYear();
-  const month = source.getUTCMonth();
-  const options: string[] = [];
-
-  for (let delta = -prev; delta <= next; delta += 1) {
-    const candidate = new Date(Date.UTC(year, month + delta, 1));
-    options.push(candidate.toISOString().slice(0, 7));
-  }
-
-  return options;
-}
-
 function formatMonthChip(yyyyMm: string, locale: 'en' | 'es'): string {
   return new Intl.DateTimeFormat(locale === 'en' ? 'en-GB' : 'es-ES', {
     month: 'short',
     year: '2-digit',
   }).format(toDateAtUtc(yyyyMm));
+}
+
+function addDays(yyyyMmDd: string, days: number): string {
+  const date = new Date(`${yyyyMmDd}T00:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
 }
 
 function toMondayFirst(sundayFirst: number): number {
