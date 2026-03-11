@@ -46,7 +46,8 @@ export default async function EventsPage({
   const requestedDay = DAY_FORMAT.test(day ?? '') ? (day as string) : undefined;
   const activeMonth = requestedDay?.slice(0, 7) ?? requestedMonth ?? currentMonth;
   const monthDate = toDateAtUtc(activeMonth);
-  const fromDate = firstDayOfMonth(activeMonth);
+  const today = new Date().toISOString().slice(0, 10);
+  const fromDate = activeMonth === currentMonth ? today : firstDayOfMonth(activeMonth);
   const toDate = lastDayOfMonth(activeMonth);
 
   const { events, unavailableCities, generatedAtIso } =
@@ -57,11 +58,12 @@ export default async function EventsPage({
       toDate,
     });
 
-  const byDay = groupByDay(events);
+  const visibleEvents = events.filter((event) => event.startDateIso.slice(0, 10) >= today);
+  const byDay = groupByDay(visibleEvents);
   const calendarDays = buildCalendarDays(activeMonth, byDay);
   const defaultDay =
     calendarDays.find((entry) => entry.count > 0)?.dayKey ??
-    firstDayOfMonth(activeMonth);
+    (activeMonth === currentMonth ? today : firstDayOfMonth(activeMonth));
 
   const selectedDay =
     requestedDay && requestedDay.startsWith(activeMonth)
@@ -317,19 +319,6 @@ export default async function EventsPage({
         </Card>
       ) : null}
 
-      {events[0] ? (
-        <Card>
-          <CardTitle>{locale === 'en' ? 'Sample event payload' : 'Ejemplo de payload de evento'}</CardTitle>
-          <CardCaption>
-            {locale === 'en'
-              ? 'Normalized object currently rendered from RA source.'
-              : 'Objeto normalizado que se renderiza actualmente desde RA.'}
-          </CardCaption>
-          <pre className="mt-3 overflow-x-auto border border-border/60 bg-background p-3 text-xs text-muted">
-            {JSON.stringify(events[0], null, 2)}
-          </pre>
-        </Card>
-      ) : null}
     </div>
   );
 }
