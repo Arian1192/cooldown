@@ -64,11 +64,7 @@ export default async function EventsPage({
   const monthDate = toDateAtUtc(activeMonth);
   const monthStart = firstDayOfMonth(activeMonth);
   const monthEnd = lastDayOfMonth(activeMonth);
-  const defaultRangeStart = activeMonth === currentMonth ? today : monthStart;
-  const rangeStart =
-    requestedDay && requestedDay.startsWith(activeMonth) && requestedDay >= defaultRangeStart
-      ? requestedDay
-      : defaultRangeStart;
+  const rangeStart = activeMonth === currentMonth ? today : monthStart;
 
   const monthEvents = events.filter((event) => {
     const dayKey = event.startDateIso.slice(0, 10);
@@ -276,7 +272,7 @@ export default async function EventsPage({
 
           <section className="space-y-4">
             <h2 className="font-display text-[clamp(1.3rem,2.5vw,1.8rem)] font-black uppercase tracking-tight">
-              {locale === 'en' ? 'From selected date to month end' : 'Desde fecha seleccionada hasta fin de mes'}
+              {locale === 'en' ? 'Upcoming month timeline' : 'Timeline mensual de eventos futuros'}
             </h2>
 
             {monthDayEntries.length > 0 ? (
