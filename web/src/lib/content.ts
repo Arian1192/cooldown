@@ -161,6 +161,105 @@ const remoteJsonRepository: ContentRepository = {
   },
 };
 
+type WeeklyDiscoverRow = Partial<ContentItem> & {
+  locale?: unknown;
+};
+
+function weeklyDiscoverFeedUrl(strapiUrl: string, localeOverride?: string): string {
+  const locale = localeOverride ?? process.env.WEEKLY_DISCOVER_LOCALE?.trim();
+  const status = process.env.WEEKLY_DISCOVER_STATUS?.trim();
+  const publicationState = process.env.WEEKLY_DISCOVER_PUBLICATION_STATE?.trim();
+  const url = new URL('/api/weekly-discover-feed', strapiUrl);
+
+  if (locale) {
+    url.searchParams.set('locale', locale);
+  }
+
+  // Compatibility: custom controllers often use "status" (Strapi v5),
+  // while older endpoints still expect "publicationState" (Strapi v4).
+  if (status) {
+    url.searchParams.set('status', status);
+  }
+
+  if (publicationState) {
+    url.searchParams.set('publicationState', publicationState);
+  }
+
+  return url.toString();
+}
+
+function parseWeeklyDiscoverRows(rows: unknown): WeeklyDiscoverRow[] {
+  if (!Array.isArray(rows)) return [];
+  return rows.filter((row): row is WeeklyDiscoverRow => row != null);
+}
+
+function toEpisodeNumber(value: unknown): number | null {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return null;
+  }
+
+  return Math.trunc(value);
+}
+
+function normalizedIdentityValue(value: unknown): string {
+  if (typeof value !== 'string') return '';
+  return value.trim().toLowerCase();
+}
+
+function weeklyEpisodeIdentityKey(row: WeeklyDiscoverRow): string | null {
+  const date = normalizedIdentityValue(row.date);
+  const city = normalizedIdentityValue(row.city);
+  const embedUrl = normalizedIdentityValue(row.embedUrl);
+  const trackArtist = normalizedIdentityValue(row.trackArtist);
+  const trackReleaseDate = normalizedIdentityValue(row.trackReleaseDate);
+
+  // Keep grouping conservative so only likely localized siblings are linked.
+  if (!date || !city) return null;
+  if (!embedUrl && !trackArtist) return null;
+
+  return [date, city, embedUrl, trackArtist, trackReleaseDate].join('|');
+}
+
+function buildEpisodeCanonicalMap(rows: WeeklyDiscoverRow[]): Map<string, number> {
+  const canonicalEpisodes = new Map<string, number>();
+
+  for (const row of rows) {
+    const key = weeklyEpisodeIdentityKey(row);
+    const episode = toEpisodeNumber(row.episode);
+    if (!key || episode == null) continue;
+
+    const current = canonicalEpisodes.get(key);
+    if (current == null || episode < current) {
+      canonicalEpisodes.set(key, episode);
+    }
+  }
+
+  return canonicalEpisodes;
+}
+
+function applyCanonicalEpisodes(
+  rows: WeeklyDiscoverRow[],
+  canonicalEpisodes: Map<string, number>,
+): { rows: WeeklyDiscoverRow[]; changed: number } {
+  let changed = 0;
+
+  const alignedRows = rows.map((row) => {
+    const key = weeklyEpisodeIdentityKey(row);
+    if (!key) return row;
+
+    const canonicalEpisode = canonicalEpisodes.get(key);
+    if (canonicalEpisode == null) return row;
+
+    const currentEpisode = toEpisodeNumber(row.episode);
+    if (currentEpisode === canonicalEpisode) return row;
+
+    changed += 1;
+    return { ...row, episode: canonicalEpisode };
+  });
+
+  return { rows: alignedRows, changed };
+}
+
 const strapiRepository: ContentRepository = {
   name: 'strapi',
   async load() {
@@ -170,7 +269,8 @@ const strapiRepository: ContentRepository = {
       'https://cms-cooldown-roan.ariancoro.com'
     ).replace(/\/$/, '');
 
-    const response = await fetch(`${strapiUrl}/api/weekly-discover-feed`, {
+    const requestedLocale = process.env.WEEKLY_DISCOVER_LOCALE?.trim();
+    const response = await fetch(weeklyDiscoverFeedUrl(strapiUrl), {
       next: { revalidate: 30 },
       headers: { Accept: 'application/json' },
     });
@@ -182,16 +282,48 @@ const strapiRepository: ContentRepository = {
     }
 
     const payload = (await response.json()) as { data?: unknown };
-    const weeklyDiscoverItems = Array.isArray(payload.data)
-      ? payload.data
-          .map((row) =>
-            normalizeItem({
-              ...((row ?? {}) as Partial<ContentItem>),
-              type: 'discover',
-            }),
-          )
-          .filter((item): item is ContentItem => item != null)
-      : [];
+    const weeklyDiscoverRows = parseWeeklyDiscoverRows(payload.data);
+    const canonicalEpisodes = buildEpisodeCanonicalMap(weeklyDiscoverRows);
+
+    if (requestedLocale && requestedLocale !== 'es') {
+      try {
+        const canonicalResponse = await fetch(weeklyDiscoverFeedUrl(strapiUrl, 'es'), {
+          next: { revalidate: 30 },
+          headers: { Accept: 'application/json' },
+        });
+
+        if (canonicalResponse.ok) {
+          const canonicalPayload = (await canonicalResponse.json()) as { data?: unknown };
+          const canonicalRows = parseWeeklyDiscoverRows(canonicalPayload.data);
+          const localeCanonicalEpisodes = buildEpisodeCanonicalMap(canonicalRows);
+
+          for (const [key, episode] of localeCanonicalEpisodes) {
+            canonicalEpisodes.set(key, episode);
+          }
+        }
+      } catch {
+        // Ignore auxiliary locale fetch errors; keep primary feed data.
+      }
+    }
+
+    const alignedWeeklyDiscoverRows = applyCanonicalEpisodes(
+      weeklyDiscoverRows,
+      canonicalEpisodes,
+    );
+    if (alignedWeeklyDiscoverRows.changed > 0) {
+      console.warn(
+        `[content] Weekly Discover locale episode mismatch corrected for ${alignedWeeklyDiscoverRows.changed} item(s).`,
+      );
+    }
+
+    const weeklyDiscoverItems = alignedWeeklyDiscoverRows.rows
+      .map((row) =>
+        normalizeItem({
+          ...(row as Partial<ContentItem>),
+          type: 'discover',
+        }),
+      )
+      .filter((item): item is ContentItem => item != null);
     const versionedItems = getVersionedItems().filter(
       (item) => item.type !== 'discover' || item.episode == null,
     );
