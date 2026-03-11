@@ -6,10 +6,25 @@ This repo contains the Sprint 1 baseline for the Music + Urban blog.
 
 - Next.js App Router + TypeScript lives in `web/`.
 
+## Toolchain (local = CI)
+
+- Node is pinned in `.nvmrc` (`22`).
+- npm is pinned in `web/package.json` via `packageManager: npm@10.9.4`.
+- `web/.npmrc` enables `engine-strict=true` so unsupported Node/npm versions fail fast.
+
+### One-time setup
+
+```bash
+nvm use
+corepack enable
+corepack prepare npm@10.9.4 --activate
+```
+
 ### Local dev
 
 ```bash
 cd web
+npm run check:toolchain
 npm ci
 npm run dev
 ```
@@ -25,7 +40,11 @@ npm run start
 ## CI
 
 GitHub Actions workflow: `.github/workflows/ci.yml`
-- runs `npm ci`, `npm run lint`, `npm run build` in `web/`
+- runs `npm run check:toolchain`, `npm ci`, commit convention validation, `npm run lint`, `npm run typecheck`, `npm run build` in `web/`
+
+PR governance:
+- Conventional Commit format is required for commit subjects.
+- Pull requests use `.github/pull_request_template.md` with accessibility and performance budget checklists.
 
 ## Internal linking conventions
 

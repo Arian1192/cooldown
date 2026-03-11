@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/Card';
 import { cn } from '@/lib/cn';
 import type { ContentItem } from '@/lib/content';
+import { type Locale } from '@/lib/i18n';
 
 const DISCOVER_PREVIEW_EVENT = 'discover-preview-activate';
 
@@ -51,7 +52,13 @@ function EmbedPreview({ url, title }: { url: string; title: string }) {
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-export function WeeklyDiscoverCard({ item }: { item: ContentItem }) {
+export function WeeklyDiscoverCard({
+  item,
+  locale,
+}: {
+  item: ContentItem;
+  locale: Locale;
+}) {
   const [embedReady, setEmbedReady] = useState(false);
 
   useEffect(() => {
@@ -160,7 +167,7 @@ export function WeeklyDiscoverCard({ item }: { item: ContentItem }) {
         </div>
 
         <div className="mt-2 flex items-center gap-3">
-          {item.rating != null && <StarRating rating={item.rating} />}
+          {item.rating != null && <StarRating rating={item.rating} locale={locale} />}
           <CardCaption>
             {item.trackLabel} · {item.trackReleaseDate}
           </CardCaption>
@@ -174,11 +181,11 @@ export function WeeklyDiscoverCard({ item }: { item: ContentItem }) {
   );
 }
 
-function StarRating({ rating }: { rating: number }) {
+function StarRating({ rating, locale }: { rating: number; locale: Locale }) {
   return (
     <div
       className="flex items-center gap-0.5"
-      aria-label={`${rating} out of 5`}
+      aria-label={`${rating} ${locale === 'en' ? 'out of 5' : 'de 5'}`}
     >
       {Array.from({ length: 5 }).map((_, i) => (
         <svg
