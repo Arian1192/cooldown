@@ -285,7 +285,7 @@ const strapiRepository: ContentRepository = {
     const weeklyDiscoverRows = parseWeeklyDiscoverRows(payload.data);
     const canonicalEpisodes = buildEpisodeCanonicalMap(weeklyDiscoverRows);
 
-    if (requestedLocale && requestedLocale !== 'es') {
+    if (locale && locale !== 'es') {
       try {
         const canonicalResponse = await fetch(weeklyDiscoverFeedUrl(strapiUrl, 'es'), {
           next: { revalidate: 30 },

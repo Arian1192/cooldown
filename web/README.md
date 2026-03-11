@@ -18,7 +18,7 @@ npm run dev
 ## Checks
 
 ```bash
-npm run lint  # eslint + `eslint-config-next` (core-web-vitals)
+npm run lint # eslint + `eslint-config-next` (core-web-vitals)
 npm run typecheck # dedicated TypeScript validation (`tsc --noEmit`)
 npm run test # Vitest unit + route smoke tests
 npm run build # `next build`

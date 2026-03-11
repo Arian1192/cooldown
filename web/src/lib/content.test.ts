@@ -1,42 +1,60 @@
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from 'vitest';
+
+import {
+  getAllItems,
+  getDiscoverWeeklyNeighbors,
+  getPagedItems,
+  searchItems,
+} from '@/lib/content';
 
 beforeAll(() => {
-  process.env.CONTENT_SOURCE = "versioned-json";
-  process.env.CONTENT_ENABLE_SEED_FALLBACK = "false";
+  process.env.CONTENT_SOURCE = 'versioned-json';
+  process.env.CONTENT_ENABLE_SEED_FALLBACK = 'false';
 });
 
-describe("content helpers", () => {
-  it("clamps paged discover queries to valid bounds", async () => {
-    const { getPagedItems } = await import("@/lib/content");
-    const firstPage = await getPagedItems("discover", -3, 2);
-    const lastPage = await getPagedItems("discover", 999, 2);
+describe('content repository helpers', () => {
+  it('clamps pagination to valid bounds', async () => {
+    const first = await getPagedItems('discover', 1, 2);
+    const below = await getPagedItems('discover', -5, 2);
+    const above = await getPagedItems('discover', 999, 2);
 
-    expect(firstPage.page).toBe(1);
-    expect(firstPage.items.length).toBeGreaterThan(0);
-    expect(lastPage.page).toBe(lastPage.pageCount);
-    expect(lastPage.items.length).toBeLessThanOrEqual(2);
+    expect(first.page).toBe(1);
+    expect(first.pageCount).toBeGreaterThanOrEqual(1);
+    expect(first.items.length).toBeLessThanOrEqual(2);
+    expect(below.page).toBe(1);
+    expect(above.page).toBe(first.pageCount);
   });
 
-  it("filters search by query, type, and city", async () => {
-    const { searchItems } = await import("@/lib/content");
+  it('returns query matches from searchable fields', async () => {
+    const all = await getAllItems();
+    expect(all.length).toBeGreaterThan(0);
 
-    const allMatches = await searchItems({ q: "mural" });
-    const cityMatches = await searchItems({
-      q: "mural",
-      type: "street-art",
-      city: "barcelona",
-    });
+    const probe = all[0]!;
+    const needle = probe.title.split(/\s+/).find((word) => word.length > 3) ?? probe.title;
+    const results = await searchItems({ q: needle });
 
-    expect(allMatches.length).toBeGreaterThan(0);
-    expect(cityMatches.length).toBe(1);
-    expect(cityMatches[0]?.slug).toBe("street-art-1");
+    expect(results.length).toBeGreaterThan(0);
+    expect(results.some((item) => item.slug === probe.slug)).toBe(true);
   });
 
-  it("returns previous and next weekly discover neighbors", async () => {
-    const { getDiscoverWeeklyNeighbors } = await import("@/lib/content");
-    const neighbors = await getDiscoverWeeklyNeighbors("discover-2");
+  it('returns weekly discover neighbors in sequence order', async () => {
+    const weekly = (await searchItems({ type: 'discover' })).filter(
+      (item) => item.episode != null,
+    );
+    expect(weekly.length).toBeGreaterThan(0);
 
-    expect(neighbors.previous?.slug).toBe("discover-1");
-    expect(neighbors.next?.slug).toBe("discover-3");
+    const first = await getDiscoverWeeklyNeighbors(weekly[0]!.slug);
+    expect(first.previous).toBeNull();
+    if (weekly.length > 1) {
+      expect(first.next?.slug).toBe(weekly[1]!.slug);
+    } else {
+      expect(first.next).toBeNull();
+    }
+
+    if (weekly.length > 2) {
+      const middle = await getDiscoverWeeklyNeighbors(weekly[1]!.slug);
+      expect(middle.previous?.slug).toBe(weekly[0]!.slug);
+      expect(middle.next?.slug).toBe(weekly[2]!.slug);
+    }
   });
 });

@@ -40,7 +40,7 @@ npm run start
 ## CI
 
 GitHub Actions workflow: `.github/workflows/ci.yml`
-- runs `npm run check:toolchain`, `npm ci`, commit convention validation, `npm run lint`, `npm run typecheck`, `npm run build` in `web/`
+- runs `npm run check:toolchain`, `npm ci`, commit convention validation, `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` in `web/`
 
 PR governance:
 - Conventional Commit format is required for commit subjects.
@@ -71,6 +71,6 @@ Vercel supports monorepos. Configure:
 
 This will automatically create:
 - **Preview deployments** for PRs
-- **Production deployments** on `main`
+- **Production deployments** on `master`
 
 If we standardize on a different provider (Netlify / Cloudflare Pages), update this section and add provider-specific config.
