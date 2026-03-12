@@ -77,6 +77,43 @@ query GetUpcomingEvents($areaId: Int!, $fromDate: DateTime!, $pageSize: Int!, $p
 }
 `;
 
+const GRAPHQL_QUERY_RANGE = `
+query GetUpcomingEventsRange($areaId: Int!, $fromDate: DateTime!, $toDate: DateTime!, $pageSize: Int!, $page: Int!) {
+  facetedSearch(
+    types: [EVENT]
+    filters: { areas: { eq: $areaId }, date: { gte: $fromDate, lte: $toDate } }
+    page: $page
+    pageSize: $pageSize
+    sort: { date: { priority: 1, order: ASCENDING } }
+  ) {
+    results {
+      data {
+        __typename
+        ... on Event {
+          id
+          title
+          date
+          contentUrl
+          flyerFront
+          images {
+            filename
+            type
+          }
+          venue {
+            name
+          }
+          area {
+            id
+            name
+            urlName
+          }
+        }
+      }
+    }
+  }
+}
+`;
+
 export async function getResidentAdvisorEvents({
   city = 'all',
   limit = 40,
@@ -180,47 +217,55 @@ async function fetchCityEventsFromGraphql(
   const deduped = new Map<string, RaEvent>();
   const maxPages = 8;
 
-  for (let page = 1; page <= maxPages; page += 1) {
-    const payload = await fetchGraphqlEventsPage({
-      areaId: config.areaId,
-      fromDate,
-      pageSize: safePageSize,
-      page,
-    });
-    const rawItems = payload.data?.facetedSearch?.results ?? [];
+  const windows =
+    toDate != null
+      ? buildWeeklyWindows(fromDate, toDate)
+      : [{ fromDate, toDate: undefined as string | undefined }];
 
-    for (const item of rawItems) {
-      const event = item.data;
-      if (!event || event.__typename !== 'Event') continue;
-
-      const title = event.title?.trim();
-      const date = event.date;
-      const url = event.contentUrl;
-
-      if (!title || !date || !url) continue;
-
-      const timestamp = Date.parse(date);
-      if (Number.isNaN(timestamp)) continue;
-
-      const sourceUrl = normalizeRaUrl(url);
-      if (!sourceUrl) continue;
-
-      const eventId = event.id ? `${city}:${event.id}` : `${city}:${sourceUrl}`;
-      const imageUrl = resolveGraphqlImageUrl(event);
-
-      deduped.set(eventId, {
-        id: eventId,
-        title,
-        venue: event.venue?.name?.trim() || 'Venue TBA',
-        city,
-        startDateIso: new Date(timestamp).toISOString(),
-        sourceUrl,
-        imageUrl,
+  for (const window of windows) {
+    for (let page = 1; page <= maxPages; page += 1) {
+      const payload = await fetchGraphqlEventsPage({
+        areaId: config.areaId,
+        fromDate: window.fromDate,
+        toDate: window.toDate,
+        pageSize: safePageSize,
+        page,
       });
-    }
+      const rawItems = payload.data?.facetedSearch?.results ?? [];
 
-    if (rawItems.length < safePageSize) {
-      break;
+      for (const item of rawItems) {
+        const event = item.data;
+        if (!event || event.__typename !== 'Event') continue;
+
+        const title = event.title?.trim();
+        const date = event.date;
+        const url = event.contentUrl;
+
+        if (!title || !date || !url) continue;
+
+        const timestamp = Date.parse(date);
+        if (Number.isNaN(timestamp)) continue;
+
+        const sourceUrl = normalizeRaUrl(url);
+        if (!sourceUrl) continue;
+
+        const eventId = event.id ? `${city}:${event.id}` : `${city}:${sourceUrl}`;
+        const imageUrl = resolveGraphqlImageUrl(event);
+
+        deduped.set(eventId, {
+          id: eventId,
+          title,
+          venue: event.venue?.name?.trim() || 'Venue TBA',
+          city,
+          startDateIso: new Date(timestamp).toISOString(),
+          sourceUrl,
+          imageUrl,
+        });
+      }
+
+      if (rawItems.length < safePageSize) {
+        break;
+      }
     }
   }
 
@@ -233,11 +278,13 @@ async function fetchCityEventsFromGraphql(
 async function fetchGraphqlEventsPage({
   areaId,
   fromDate,
+  toDate,
   pageSize,
   page,
 }: {
   areaId: number;
   fromDate: string;
+  toDate?: string;
   pageSize: number;
   page: number;
 }): Promise<{
@@ -270,10 +317,11 @@ async function fetchGraphqlEventsPage({
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      query: GRAPHQL_QUERY,
+      query: toDate ? GRAPHQL_QUERY_RANGE : GRAPHQL_QUERY,
       variables: {
         areaId,
         fromDate,
+        ...(toDate ? { toDate } : {}),
         pageSize,
         page,
       },
@@ -316,6 +364,32 @@ async function fetchGraphqlEventsPage({
   return {
     data: payload.data,
   };
+}
+
+function buildWeeklyWindows(
+  fromDate: string,
+  toDate: string,
+): Array<{ fromDate: string; toDate: string }> {
+  const windows: Array<{ fromDate: string; toDate: string }> = [];
+  let cursor = fromDate;
+
+  while (cursor <= toDate) {
+    const end = minIsoDate(addDaysIso(cursor, 6), toDate);
+    windows.push({ fromDate: cursor, toDate: end });
+    cursor = addDaysIso(cursor, 7);
+  }
+
+  return windows;
+}
+
+function addDaysIso(yyyyMmDd: string, days: number): string {
+  const date = new Date(`${yyyyMmDd}T00:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function minIsoDate(a: string, b: string): string {
+  return a <= b ? a : b;
 }
 
 function clampEventsByDateRange(
