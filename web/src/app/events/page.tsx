@@ -102,8 +102,8 @@ export default async function EventsPage({
 
   const caption =
     locale === 'en'
-      ? 'Monthly calendar with flyer-first event cards for Barcelona and Madrid.'
-      : 'Calendario mensual con tarjetas centradas en flyer para Barcelona y Madrid.';
+      ? `Barcelona + Madrid · ${monthLabel}`
+      : `Barcelona + Madrid · ${monthLabel}`;
 
   const jsonLd = collectionPageJsonLd({
     title: 'Events',
@@ -123,105 +123,108 @@ export default async function EventsPage({
 
       <PageHeader title="Events" caption={caption} />
 
-      <Card>
-        <CardTitle>{locale === 'en' ? 'City filter' : 'Filtro por ciudad'}</CardTitle>
-        <CardCaption>
-          {locale === 'en'
-            ? 'Resident Advisor GraphQL with month/day-driven URL filters.'
-            : 'Resident Advisor GraphQL con filtros de mes/dia controlados por URL.'}
-        </CardCaption>
+      <Card className="space-y-6 p-5 sm:p-6">
+        <div>
+          <CardTitle>{locale === 'en' ? 'Filters' : 'Filtros'}</CardTitle>
+          <CardCaption className="text-xs normal-case tracking-[0.05em]">
+            {locale === 'en'
+              ? 'City and quick discovery filters in one control block.'
+              : 'Ciudad y filtros rapidos de descubrimiento en un solo bloque de control.'}
+          </CardCaption>
+        </div>
 
-        <div className="mt-4 -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0">
-          {CITY_FILTERS.map((filter) => (
+        <div className="space-y-3">
+          <p className="font-display text-[11px] font-black uppercase tracking-[0.18em] text-muted">
+            {locale === 'en' ? 'City' : 'Ciudad'}
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {CITY_FILTERS.map((filter) => (
+              <Link
+                key={filter}
+                href={{
+                  pathname: '/events',
+                  query: {
+                    ...(filter === 'all' ? {} : { city: filter }),
+                    month: activeMonth,
+                    day: selectedDay,
+                  },
+                }}
+                className={
+                  filter === cityFilter
+                    ? 'shrink-0 whitespace-nowrap border border-accent bg-accent px-5 py-2.5 text-center font-display text-[12px] font-black uppercase tracking-[0.1em] text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+                    : 'shrink-0 whitespace-nowrap border border-border px-5 py-2.5 text-center font-display text-[12px] font-bold uppercase tracking-[0.1em] text-muted transition-colors hover:border-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+                }
+              >
+                {cityLabel(filter, locale)}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <p className="font-display text-[11px] font-black uppercase tracking-[0.18em] text-muted">
+            {locale === 'en' ? 'Quick filters' : 'Filtros rapidos'}
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
             <Link
-              key={filter}
               href={{
                 pathname: '/events',
                 query: {
-                  ...(filter === 'all' ? {} : { city: filter }),
-                  month: activeMonth,
-                  day: selectedDay,
+                  ...(cityFilter === 'all' ? {} : { city: cityFilter }),
+                  month: today.slice(0, 7),
+                  day: today,
                 },
               }}
               className={
-                filter === cityFilter
-                  ? 'shrink-0 whitespace-nowrap border border-accent bg-accent px-4 py-2 text-center font-display text-[11px] font-black uppercase tracking-[0.18em] text-accent-foreground'
-                  : 'shrink-0 whitespace-nowrap border border-border px-4 py-2 text-center font-display text-[11px] font-bold uppercase tracking-[0.18em] text-muted transition-colors hover:border-accent hover:text-foreground'
+                selectedDay === today
+                  ? 'border border-accent bg-accent px-4 py-2.5 font-display text-[12px] font-bold uppercase tracking-[0.1em] text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+                  : 'border border-border px-4 py-2.5 font-display text-[12px] font-bold uppercase tracking-[0.1em] text-muted transition-colors hover:border-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
               }
             >
-              {cityLabel(filter)}
+              {locale === 'en' ? 'Today' : 'Hoy'}
             </Link>
-          ))}
-        </div>
-      </Card>
 
-      <Card>
-        <CardTitle>{locale === 'en' ? 'Quick filters' : 'Filtros rapidos'}</CardTitle>
-        <CardCaption>
-          {locale === 'en'
-            ? 'Jump to common discovery windows without scrolling.'
-            : 'Salta a ventanas de descubrimiento comunes sin scroll largo.'}
-        </CardCaption>
+            <Link
+              href={{
+                pathname: '/events',
+                query: {
+                  ...(cityFilter === 'all' ? {} : { city: cityFilter }),
+                  month: weekendDay.slice(0, 7),
+                  day: weekendDay,
+                },
+              }}
+              className={
+                selectedDay === weekendDay
+                  ? 'border border-accent bg-accent px-4 py-2.5 font-display text-[12px] font-bold uppercase tracking-[0.1em] text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+                  : 'border border-border px-4 py-2.5 font-display text-[12px] font-bold uppercase tracking-[0.1em] text-muted transition-colors hover:border-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+              }
+            >
+              {locale === 'en' ? 'Weekend' : 'Fin de semana'}
+            </Link>
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Link
-            href={{
-              pathname: '/events',
-              query: {
-                ...(cityFilter === 'all' ? {} : { city: cityFilter }),
-                month: today.slice(0, 7),
-                day: today,
-              },
-            }}
-            className={
-              selectedDay === today
-                ? 'border border-accent bg-accent px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.15em] text-accent-foreground'
-                : 'border border-border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.15em] text-muted transition-colors hover:border-accent hover:text-foreground'
-            }
-          >
-            {locale === 'en' ? 'Today' : 'Hoy'}
-          </Link>
-
-          <Link
-            href={{
-              pathname: '/events',
-              query: {
-                ...(cityFilter === 'all' ? {} : { city: cityFilter }),
-                month: weekendDay.slice(0, 7),
-                day: weekendDay,
-              },
-            }}
-            className={
-              selectedDay === weekendDay
-                ? 'border border-accent bg-accent px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.15em] text-accent-foreground'
-                : 'border border-border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.15em] text-muted transition-colors hover:border-accent hover:text-foreground'
-            }
-          >
-            {locale === 'en' ? 'Weekend' : 'Fin de semana'}
-          </Link>
-
-          <Link
-            href={{
-              pathname: '/events',
-              query: {
-                ...(cityFilter === 'all' ? {} : { city: cityFilter }),
-                month: currentMonth,
-              },
-            }}
-            className={
-              activeMonth === currentMonth
-                ? 'border border-accent bg-accent px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.15em] text-accent-foreground'
-                : 'border border-border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.15em] text-muted transition-colors hover:border-accent hover:text-foreground'
-            }
-          >
-            {locale === 'en' ? 'This month' : 'Este mes'}
-          </Link>
+            <Link
+              href={{
+                pathname: '/events',
+                query: {
+                  ...(cityFilter === 'all' ? {} : { city: cityFilter }),
+                  month: currentMonth,
+                },
+              }}
+              className={
+                activeMonth === currentMonth
+                  ? 'border border-accent bg-accent px-4 py-2.5 font-display text-[12px] font-bold uppercase tracking-[0.1em] text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+                  : 'border border-border px-4 py-2.5 font-display text-[12px] font-bold uppercase tracking-[0.1em] text-muted transition-colors hover:border-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+              }
+            >
+              {locale === 'en' ? 'This month' : 'Este mes'}
+            </Link>
+          </div>
         </div>
       </Card>
 
       {monthEvents.length > 0 ? (
         <>
-          <Card className="space-y-4">
+          <Card className="space-y-5 p-5 sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <CardTitle>{locale === 'en' ? 'Calendar' : 'Calendario'}</CardTitle>
@@ -241,8 +244,8 @@ export default async function EventsPage({
                     }}
                     className={
                       candidateMonth === activeMonth
-                        ? 'border border-accent bg-accent px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.15em] text-accent-foreground'
-                        : 'border border-border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.15em] text-muted transition-colors hover:border-accent hover:text-foreground'
+                        ? 'border border-accent bg-accent px-4 py-2.5 font-display text-[12px] font-bold uppercase tracking-[0.1em] text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+                        : 'border border-border px-4 py-2.5 font-display text-[12px] font-bold uppercase tracking-[0.1em] text-muted transition-colors hover:border-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
                     }
                   >
                     {formatMonthChip(candidateMonth, locale)}
@@ -251,7 +254,7 @@ export default async function EventsPage({
               </div>
             </div>
 
-            <div className="grid grid-cols-7 gap-2 text-center">
+            <div className="grid grid-cols-7 gap-2.5 text-center">
               {weekDays.map((label) => (
                 <div
                   key={label}
@@ -292,19 +295,19 @@ export default async function EventsPage({
                         day: entry.dayKey,
                       },
                     }}
-                    className={`min-h-20 border p-2 text-left transition-colors ${baseClasses}`}
+                    className={`min-h-24 border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background ${baseClasses}`}
                   >
                     <div className="font-display text-lg font-black leading-none">
                       {entry.dayNumber}
                     </div>
-                    <div className="mt-2 font-display text-[10px] font-bold uppercase tracking-[0.15em]">
+                    <div className="mt-2 font-display text-[12px] font-bold uppercase tracking-[0.14em]">
                       {entry.count} {locale === 'en' ? 'events' : 'eventos'}
                     </div>
                   </Link>
                 ) : (
                   <div
                     key={entry.dayKey}
-                    className={`min-h-20 border p-2 text-left ${baseClasses}`}
+                    className={`min-h-24 border p-3 text-left ${baseClasses}`}
                   >
                     <div className="font-display text-lg font-black leading-none opacity-70">
                       {entry.dayNumber}
@@ -318,7 +321,8 @@ export default async function EventsPage({
           <section className="space-y-4">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <h2 className="font-display text-[clamp(1.3rem,2.5vw,1.8rem)] font-black uppercase tracking-tight">
-                {locale === 'en' ? 'Selected day' : 'Dia seleccionado'}: {selectedDay}
+                {locale === 'en' ? 'Selected day' : 'Dia seleccionado'}:{' '}
+                {formatDayKeyForHeading(selectedDay, locale)}
               </h2>
               <p className="text-sm text-muted">
                 {selectedEvents.length} {locale === 'en' ? 'events' : 'eventos'}
@@ -328,7 +332,7 @@ export default async function EventsPage({
             {selectedEvents.length > 0 ? (
               <EventFlyerGallery events={selectedEvents} locale={locale} />
             ) : (
-              <Card>
+              <Card className="p-5 sm:p-6">
                 <CardTitle>{locale === 'en' ? 'No events this day' : 'No hay eventos ese dia'}</CardTitle>
                 <CardCaption>
                   {locale === 'en'
@@ -364,7 +368,7 @@ export default async function EventsPage({
           ) : null}
         </>
       ) : (
-        <Card>
+        <Card className="p-5 sm:p-6">
           <CardTitle>{locale === 'en' ? 'No events available' : 'No hay eventos disponibles'}</CardTitle>
           <CardCaption>
             {locale === 'en'
@@ -375,12 +379,12 @@ export default async function EventsPage({
       )}
 
       {unavailableCities.length > 0 ? (
-        <Card>
+        <Card className="p-5 sm:p-6">
           <CardTitle>{locale === 'en' ? 'Source warning' : 'Aviso de fuente'}</CardTitle>
           <CardCaption>
             {locale === 'en'
-              ? `RA ingestion failed for: ${unavailableCities.map(cityLabel).join(', ')}.`
-              : `La ingesta de RA fallo para: ${unavailableCities.map(cityLabel).join(', ')}.`}
+              ? `RA ingestion failed for: ${unavailableCities.map((city) => cityLabel(city, locale)).join(', ')}.`
+              : `La ingesta de RA fallo para: ${unavailableCities.map((city) => cityLabel(city, locale)).join(', ')}.`}
           </CardCaption>
           <p className="mt-2 text-sm text-muted">
             {locale === 'en'
@@ -401,10 +405,19 @@ export default async function EventsPage({
   );
 }
 
-function cityLabel(city: EventCityFilter): string {
-  if (city === 'all') return 'All';
+function cityLabel(city: EventCityFilter, locale: 'en' | 'es'): string {
+  if (city === 'all') return locale === 'en' ? 'All' : 'Todas';
   if (city === 'barcelona') return 'Barcelona';
   return 'Madrid';
+}
+
+function formatDayKeyForHeading(dayKey: string, locale: 'en' | 'es') {
+  return new Intl.DateTimeFormat(locale === 'en' ? 'en-GB' : 'es-ES', {
+    weekday: 'short',
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date(`${dayKey}T00:00:00.000Z`));
 }
 
 function groupByDay(events: RaEvent[]) {
