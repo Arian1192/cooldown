@@ -2,6 +2,7 @@ import Link from "next/link";
 
 const NAV = [
   { href: "/discover", label: "Discover" },
+  { href: "/events", label: "Events" },
   { href: "/street-art", label: "Street Art" },
   { href: "/interviews", label: "Interviews" },
   { href: "/reviews", label: "Reviews" },
@@ -91,4 +92,3 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-

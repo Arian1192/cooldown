@@ -21,6 +21,7 @@
 
   /* Flat editorial – no bubble corners */
   --radius: 2px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @theme inline {
@@ -56,3 +57,25 @@ body {
 h1 { letter-spacing: -0.03em; }
 h2 { letter-spacing: -0.02em; }
 h3 { letter-spacing: -0.01em; }
+
+@keyframes event-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.event-reveal {
+  animation: event-reveal 420ms var(--ease-out) both;
+  animation-delay: calc(var(--stagger, 0) * 55ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .event-reveal {
+    animation: none;
+  }
+}
