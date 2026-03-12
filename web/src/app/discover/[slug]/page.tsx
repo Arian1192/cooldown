@@ -2,8 +2,9 @@ import type { Metadata } from 'next';
 
 import { ContentDetail } from '@/components/ContentDetail';
 import { WeeklyDiscoverDetail } from '@/components/WeeklyDiscoverDetail';
-import { env } from '@/env';
 import { getItem, labelForCity } from '@/lib/content';
+import { getRequestLocale } from '@/lib/requestLocale';
+import { basicOg } from '@/lib/seo';
 import {
   getWeeklyDiscoverItemBySlug,
   getWeeklyDiscoverNeighbors,
@@ -14,9 +15,11 @@ export async function generateMetadata({
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
+  const locale = await getRequestLocale();
   const { slug } = await params;
   const item =
-    (await getWeeklyDiscoverItemBySlug(slug)) ?? (await getItem('discover', slug));
+    (await getWeeklyDiscoverItemBySlug(slug, locale)) ??
+    (await getItem('discover', slug, locale));
   if (!item) return {};
 
   const title =
@@ -26,17 +29,19 @@ export async function generateMetadata({
   const description = item.verdict ?? item.excerpt;
   const canonical = `/discover/${slug}`;
 
-  return {
+  const metadata = basicOg({
     title,
     description,
-    alternates: { canonical },
-    openGraph: {
-      type: 'article',
-      title,
-      description,
-      url: canonical,
-      siteName: env.NEXT_PUBLIC_SITE_NAME,
-    },
+    canonicalPath: canonical,
+    type: 'article',
+    imagePath: item.coverImageSrc,
+    publishedTime: item.date,
+    tags: item.tags,
+    locale,
+  });
+
+  return {
+    ...metadata,
     other: {
       'article:section': 'Weekly Discover',
       'article:tag': item.tags.join(','),
@@ -51,17 +56,23 @@ export default async function DiscoverDetailPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  const locale = await getRequestLocale();
   const { slug } = await params;
-  const weeklyItem = await getWeeklyDiscoverItemBySlug(slug);
+  const weeklyItem = await getWeeklyDiscoverItemBySlug(slug, locale);
 
   // Weekly curated picks get the full structured template
   if (weeklyItem?.episode != null) {
-    const { previous, next } = await getWeeklyDiscoverNeighbors(slug);
+    const { previous, next } = await getWeeklyDiscoverNeighbors(slug, locale);
     return (
-      <WeeklyDiscoverDetail item={weeklyItem} previous={previous} next={next} />
+      <WeeklyDiscoverDetail
+        item={weeklyItem}
+        previous={previous}
+        next={next}
+        locale={locale}
+      />
     );
   }
 
   // Regular discover items fall back to the generic template
-  return <ContentDetail type="discover" slug={slug} />;
+  return <ContentDetail type="discover" slug={slug} locale={locale} />;
 }

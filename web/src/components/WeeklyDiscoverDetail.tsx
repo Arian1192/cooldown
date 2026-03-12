@@ -11,6 +11,7 @@ import {
   getItem,
   labelForCity,
 } from '@/lib/content';
+import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n';
 import { siteUrl } from '@/lib/site';
 import { articleJsonLd } from '@/lib/structuredData';
 
@@ -30,7 +31,7 @@ function Divider() {
 
 function StarRow({ rating }: { rating: number }) {
   return (
-    <div className="flex items-center gap-0.75" aria-label={`${rating} de 5`}>
+    <div className="flex items-center gap-0.75" aria-label={`${rating}/5`}>
       {Array.from({ length: 5 }).map((_, i) => (
         <svg
           key={i}
@@ -50,11 +51,15 @@ function StarRow({ rating }: { rating: number }) {
   );
 }
 
-function EnergyFlames({ level }: { level: number }) {
+function EnergyFlames({ level, locale }: { level: number; locale: Locale }) {
   return (
     <span
       className="font-display text-sm tracking-wider"
-      aria-label={`Nivel de energía ${level} de 5`}
+      aria-label={
+        locale === 'en'
+          ? `Energy level ${level} out of 5`
+          : `Nivel de energia ${level} de 5`
+      }
     >
       {Array.from({ length: 5 }).map((_, i) => (
         <span key={i} className={i < level ? 'opacity-100' : 'opacity-20'}>
@@ -64,13 +69,6 @@ function EnergyFlames({ level }: { level: number }) {
     </span>
   );
 }
-
-const SET_MOMENT_LABEL: Record<SetMoment, string> = {
-  'warm-up': 'Warm-up',
-  'peak-time': 'Peak Time',
-  closing: 'Closing',
-  'after-hours': 'After Hours',
-};
 
 function EmbedPlayer({ url, title }: { url: string; title: string }) {
   if (url.includes('spotify.com')) {
@@ -109,21 +107,41 @@ export async function WeeklyDiscoverDetail({
   item: itemProp,
   previous: previousProp,
   next: nextProp,
+  locale = DEFAULT_LOCALE,
 }: {
   slug?: string;
   item?: ContentItem;
   previous?: ContentItem | null;
   next?: ContentItem | null;
+  locale?: Locale;
 }) {
-  const item = itemProp ?? (slug ? await getItem('discover', slug) : null);
+  const item = itemProp ?? (slug ? await getItem('discover', slug, locale) : null);
   if (!item || item.episode == null) notFound();
 
-  const fallbackNeighbors = await getDiscoverWeeklyNeighbors(item.slug);
+  const fallbackNeighbors = await getDiscoverWeeklyNeighbors(item.slug, locale);
   const previous = previousProp ?? fallbackNeighbors.previous;
   const next = nextProp ?? fallbackNeighbors.next;
 
-  const jsonLd = articleJsonLd(item);
+  const jsonLd = articleJsonLd(item, locale);
   const canonical = siteUrl(`/discover/${item.slug}`);
+  const copy = {
+    weekly: 'Weekly Discover',
+    idCard: 'ID Card',
+    review: 'Rating',
+    technical: 'Technical Bite',
+    mood: 'Mood Scenario',
+    prediction: 'Track Prediction',
+    energy: 'Energy Level',
+    setMoment: 'Set Moment',
+    permalink: 'Permalink',
+    nav: 'Weekly navigation',
+  };
+  const setMomentLabel: Record<SetMoment, string> = {
+    'warm-up': 'Warm-up',
+    'peak-time': 'Peak Time',
+    closing: 'Closing',
+    'after-hours': 'After Hours',
+  };
 
   return (
     <article className="mx-auto max-w-3xl space-y-0">
@@ -136,7 +154,7 @@ export async function WeeklyDiscoverDetail({
       <header className="space-y-3 pb-8">
         <div className="flex items-center gap-3">
           <span className="font-display text-xs font-bold uppercase tracking-[0.28em] text-accent">
-            Weekly Discover · #{String(item.episode).padStart(2, '0')}
+            {copy.weekly} · #{String(item.episode).padStart(2, '0')}
           </span>
           <span className="h-px flex-1 bg-border" />
           <span className="font-display text-xs uppercase tracking-[0.2em] text-muted">
@@ -173,15 +191,15 @@ export async function WeeklyDiscoverDetail({
       {/* ── 🗂️ ID Card ────────────────────────────────────────────────── */}
       <Divider />
       <section className="py-8">
-        <SectionLabel>🗂️ ID Card — Datos de culto</SectionLabel>
+        <SectionLabel>🗂️ {copy.idCard}</SectionLabel>
         <dl className="grid grid-cols-2 gap-x-8 gap-y-3 sm:grid-cols-3">
-          {[
-            { term: 'Artista', def: item.trackArtist },
-            { term: 'Sello', def: item.trackLabel },
-            { term: 'Lanzamiento', def: item.trackReleaseDate },
+            {[
+            { term: 'Artist', def: item.trackArtist },
+            { term: 'Label', def: item.trackLabel },
+            { term: 'Release', def: item.trackReleaseDate },
             { term: 'BPM', def: item.bpm?.toString() },
             { term: 'Key', def: item.musicalKey },
-            { term: 'Ciudad', def: labelForCity(item.city) },
+            { term: 'City', def: labelForCity(item.city) },
           ].map(({ term, def }) =>
             def ? (
               <div key={term}>
@@ -202,7 +220,7 @@ export async function WeeklyDiscoverDetail({
         <>
           <Divider />
           <section className="py-8">
-            <SectionLabel>⭐ Valoración</SectionLabel>
+            <SectionLabel>⭐ {copy.review}</SectionLabel>
             <div className="flex items-start gap-6">
               {/* Large episode number — decorative */}
               <span
@@ -228,7 +246,7 @@ export async function WeeklyDiscoverDetail({
           <Divider />
           <section className="py-8">
             <SectionLabel>
-              🔊 Technical Bite — El secreto del sonido
+              🔊 {copy.technical}
             </SectionLabel>
             <p className="max-w-prose text-base leading-relaxed text-foreground/80">
               {item.technicalBite}
@@ -242,7 +260,7 @@ export async function WeeklyDiscoverDetail({
         <>
           <Divider />
           <section className="py-8">
-            <SectionLabel>🪐 Escenario imaginario — Mood</SectionLabel>
+            <SectionLabel>🪐 {copy.mood}</SectionLabel>
             <p className="max-w-prose text-base italic leading-relaxed text-muted">
               &ldquo;{item.moodScenario}&rdquo;
             </p>
@@ -255,20 +273,20 @@ export async function WeeklyDiscoverDetail({
         <>
           <Divider />
           <section className="py-8">
-            <SectionLabel>⚡ Predicción de pista</SectionLabel>
+            <SectionLabel>⚡ {copy.prediction}</SectionLabel>
             <div className="flex flex-wrap items-center gap-6">
               {item.energyLevel != null && (
                 <div className="space-y-1">
                   <p className="font-display text-xs uppercase tracking-[0.2em] text-muted">
-                    Nivel de energía
+                    {copy.energy}
                   </p>
-                  <EnergyFlames level={item.energyLevel} />
+                  <EnergyFlames level={item.energyLevel} locale={locale} />
                 </div>
               )}
               {item.setMoment && (
                 <div className="space-y-1">
                   <p className="font-display text-xs uppercase tracking-[0.2em] text-muted">
-                    Momento del set
+                    {copy.setMoment}
                   </p>
                   <span
                     className={cn(
@@ -276,7 +294,7 @@ export async function WeeklyDiscoverDetail({
                       'font-display text-xs font-bold uppercase tracking-[0.18em] text-foreground',
                     )}
                   >
-                    {SET_MOMENT_LABEL[item.setMoment]}
+                    {setMomentLabel[item.setMoment]}
                   </span>
                 </div>
               )}
@@ -288,7 +306,7 @@ export async function WeeklyDiscoverDetail({
       {/* ── Permalink ─────────────────────────────────────────────────── */}
       <Divider />
       <div className="py-4 text-sm text-muted">
-        Permalink:{' '}
+        {copy.permalink}:{' '}
         <a
           className="underline"
           href={canonical}
@@ -301,7 +319,7 @@ export async function WeeklyDiscoverDetail({
 
       <Divider />
       <nav
-        aria-label="Navegación semanal"
+        aria-label={copy.nav}
         className="flex items-center justify-between gap-4 py-6"
       >
         <div className="flex-1">

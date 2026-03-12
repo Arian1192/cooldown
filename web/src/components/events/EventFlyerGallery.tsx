@@ -1,0 +1,247 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
+
+import { formatEventDateLabel, type RaEvent } from '@/lib/raEvents';
+
+type Props = {
+  events: RaEvent[];
+  locale: 'en' | 'es';
+};
+
+type ActiveDialog = {
+  event: RaEvent;
+  trigger: HTMLButtonElement | null;
+};
+
+export function EventFlyerGallery({ events, locale }: Props) {
+  const [activeDialog, setActiveDialog] = useState<ActiveDialog | null>(null);
+  const [loadedImages, setLoadedImages] = useState<Record<string, boolean>>({});
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!activeDialog) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closeButtonRef.current?.focus();
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setActiveDialog((current) => {
+          current?.trigger?.focus();
+          return null;
+        });
+        return;
+      }
+
+      if (event.key === 'Tab') {
+        const dialogElement = dialogRef.current;
+        if (!dialogElement) return;
+        const focusable = dialogElement.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        );
+        if (focusable.length === 0) return;
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const activeElement = document.activeElement as HTMLElement | null;
+
+        if (event.shiftKey && activeElement === first) {
+          event.preventDefault();
+          last.focus();
+          return;
+        }
+
+        if (!event.shiftKey && activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [activeDialog]);
+
+  const openDialog = (event: RaEvent, trigger: HTMLButtonElement | null) => {
+    setActiveDialog({ event, trigger });
+  };
+
+  const closeDialog = () => {
+    setActiveDialog((current) => {
+      current?.trigger?.focus();
+      return null;
+    });
+  };
+
+  return (
+    <>
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+        {events.map((event) => (
+          <article
+            key={event.id}
+            className="group relative overflow-hidden border border-border bg-surface transition-colors hover:border-accent/70"
+          >
+            <button
+              type="button"
+              onClick={(clickEvent) => {
+                openDialog(event, clickEvent.currentTarget);
+              }}
+              className="absolute inset-0 z-10 cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              aria-label={
+                locale === 'en'
+                  ? `Open flyer for ${event.title}`
+                  : `Abrir flyer de ${event.title}`
+              }
+            />
+
+            <div className="relative min-h-[260px]">
+              {event.imageUrl ? (
+                <>
+                  {!loadedImages[event.id] ? (
+                    <div className="absolute inset-0 animate-pulse bg-linear-to-br from-surface via-background to-surface" />
+                  ) : null}
+                  <Image
+                    src={event.imageUrl}
+                    alt={
+                      locale === 'en'
+                        ? `Flyer for ${event.title} at ${event.venue}`
+                        : `Flyer de ${event.title} en ${event.venue}`
+                    }
+                    fill
+                    unoptimized
+                    loading="lazy"
+                    sizes="(min-width: 1536px) 22vw, (min-width: 1280px) 30vw, (min-width: 640px) 45vw, 100vw"
+                    className={`absolute inset-0 object-cover bg-center transition-all duration-500 group-hover:scale-[1.03] ${
+                      loadedImages[event.id] ? 'opacity-100' : 'opacity-0'
+                    }`}
+                    onLoad={() => {
+                      setLoadedImages((current) => ({ ...current, [event.id]: true }));
+                    }}
+                  />
+                </>
+              ) : (
+                <div className="absolute inset-0 bg-linear-to-br from-accent/35 via-accent-2/25 to-background" />
+              )}
+
+              <div className="absolute inset-0 bg-linear-to-t from-black/95 via-black/55 to-black/20" />
+
+              <div className="absolute bottom-0 left-0 right-0 z-20 space-y-2 p-3 sm:p-4">
+                <div className="space-y-2 border-l-2 border-accent bg-black/55 p-3 backdrop-blur-[2px]">
+                  <p className="font-display text-[10px] font-black uppercase tracking-[0.2em] text-accent">
+                    {event.city === 'barcelona' ? 'Barcelona' : 'Madrid'}
+                  </p>
+                  <h3 className="font-display text-base font-black uppercase leading-tight tracking-[0.02em] text-white sm:text-lg md:text-xl">
+                    {event.title}
+                  </h3>
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-white/85 md:text-sm">
+                    <p>{event.venue}</p>
+                    <p>{formatEventDateLabel(event.startDateIso, locale)}</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="font-display text-[11px] font-bold uppercase tracking-[0.16em] text-white/85">
+                    {locale === 'en' ? 'Tap flyer to view full poster' : 'Toca el flyer para ver el cartel'}
+                  </p>
+                  <a
+                    href={event.sourceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="relative z-30 inline-flex border border-white/45 bg-black/55 px-3 py-2 font-display text-[12px] font-bold uppercase tracking-[0.14em] text-white transition-colors hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                  >
+                    {locale === 'en' ? 'Open in RA' : 'Abrir en RA'}
+                  </a>
+                </div>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      {activeDialog ? (
+        <div
+          role="presentation"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              closeDialog();
+            }
+          }}
+        >
+          <div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="event-flyer-title"
+            className="relative max-h-[92vh] w-full max-w-4xl overflow-hidden border border-border bg-surface"
+          >
+            <button
+              ref={closeButtonRef}
+              type="button"
+              onClick={closeDialog}
+              className="absolute right-3 top-3 z-20 border border-white/45 bg-black/70 px-3 py-2 font-display text-[12px] font-bold uppercase tracking-[0.15em] text-white transition-colors hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+            >
+              {locale === 'en' ? 'Close' : 'Cerrar'}
+            </button>
+
+            <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_320px]">
+              <div className="relative flex max-h-[70vh] items-center justify-center bg-black">
+                {activeDialog.event.imageUrl ? (
+                  <Image
+                    src={activeDialog.event.imageUrl}
+                    alt={
+                      locale === 'en'
+                        ? `Flyer for ${activeDialog.event.title} at ${activeDialog.event.venue}`
+                        : `Flyer de ${activeDialog.event.title} en ${activeDialog.event.venue}`
+                    }
+                    width={1400}
+                    height={1800}
+                    unoptimized
+                    className="max-h-[70vh] w-auto max-w-full object-contain"
+                  />
+                ) : (
+                  <div className="flex h-[320px] w-full items-center justify-center bg-linear-to-br from-accent/30 via-accent-2/20 to-background px-6 text-center font-display text-xs font-bold uppercase tracking-[0.2em] text-muted">
+                    {locale === 'en' ? 'Flyer unavailable' : 'Flyer no disponible'}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-4 border-t border-border p-5 lg:border-l lg:border-t-0">
+                <p className="font-display text-[10px] font-black uppercase tracking-[0.2em] text-muted">
+                  {activeDialog.event.city === 'barcelona' ? 'Barcelona' : 'Madrid'}
+                </p>
+                <h3
+                  id="event-flyer-title"
+                  className="font-display text-xl font-black uppercase leading-tight tracking-[0.02em]"
+                >
+                  {activeDialog.event.title}
+                </h3>
+                <div className="space-y-1 border-l-2 border-accent/70 pl-3 text-sm text-muted">
+                  <p>{activeDialog.event.venue}</p>
+                  <p>{formatEventDateLabel(activeDialog.event.startDateIso, locale)}</p>
+                </div>
+                <a
+                  href={activeDialog.event.sourceUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex w-full items-center justify-center border border-accent bg-accent px-4 py-2.5 font-display text-[12px] font-black uppercase tracking-[0.15em] text-accent-foreground transition-colors hover:bg-accent/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                >
+                  {locale === 'en' ? 'Open in RA' : 'Abrir en RA'}
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+}

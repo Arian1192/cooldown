@@ -1,6 +1,7 @@
 import { cache } from 'react';
 
 import versionedData from '@/data/content.v1.json';
+import { DEFAULT_LOCALE, type Locale } from '@/lib/i18n';
 
 export type ContentType = 'discover' | 'street-art' | 'interviews' | 'reviews';
 
@@ -40,7 +41,7 @@ type ContentStore = {
 
 type ContentRepository = {
   name: ContentStore['source'];
-  load(): Promise<ContentStore>;
+  load(locale: Locale): Promise<ContentStore>;
 };
 
 const CONTENT_TYPES: ContentType[] = [
@@ -161,16 +162,115 @@ const remoteJsonRepository: ContentRepository = {
   },
 };
 
+type WeeklyDiscoverRow = Partial<ContentItem> & {
+  locale?: unknown;
+};
+
+function weeklyDiscoverFeedUrl(strapiUrl: string, localeOverride?: string): string {
+  const locale = localeOverride ?? process.env.WEEKLY_DISCOVER_LOCALE?.trim();
+  const status = process.env.WEEKLY_DISCOVER_STATUS?.trim();
+  const publicationState = process.env.WEEKLY_DISCOVER_PUBLICATION_STATE?.trim();
+  const url = new URL('/api/weekly-discover-feed', strapiUrl);
+
+  if (locale) {
+    url.searchParams.set('locale', locale);
+  }
+
+  // Compatibility: custom controllers often use "status" (Strapi v5),
+  // while older endpoints still expect "publicationState" (Strapi v4).
+  if (status) {
+    url.searchParams.set('status', status);
+  }
+
+  if (publicationState) {
+    url.searchParams.set('publicationState', publicationState);
+  }
+
+  return url.toString();
+}
+
+function parseWeeklyDiscoverRows(rows: unknown): WeeklyDiscoverRow[] {
+  if (!Array.isArray(rows)) return [];
+  return rows.filter((row): row is WeeklyDiscoverRow => row != null);
+}
+
+function toEpisodeNumber(value: unknown): number | null {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return null;
+  }
+
+  return Math.trunc(value);
+}
+
+function normalizedIdentityValue(value: unknown): string {
+  if (typeof value !== 'string') return '';
+  return value.trim().toLowerCase();
+}
+
+function weeklyEpisodeIdentityKey(row: WeeklyDiscoverRow): string | null {
+  const date = normalizedIdentityValue(row.date);
+  const city = normalizedIdentityValue(row.city);
+  const embedUrl = normalizedIdentityValue(row.embedUrl);
+  const trackArtist = normalizedIdentityValue(row.trackArtist);
+  const trackReleaseDate = normalizedIdentityValue(row.trackReleaseDate);
+
+  // Keep grouping conservative so only likely localized siblings are linked.
+  if (!date || !city) return null;
+  if (!embedUrl && !trackArtist) return null;
+
+  return [date, city, embedUrl, trackArtist, trackReleaseDate].join('|');
+}
+
+function buildEpisodeCanonicalMap(rows: WeeklyDiscoverRow[]): Map<string, number> {
+  const canonicalEpisodes = new Map<string, number>();
+
+  for (const row of rows) {
+    const key = weeklyEpisodeIdentityKey(row);
+    const episode = toEpisodeNumber(row.episode);
+    if (!key || episode == null) continue;
+
+    const current = canonicalEpisodes.get(key);
+    if (current == null || episode < current) {
+      canonicalEpisodes.set(key, episode);
+    }
+  }
+
+  return canonicalEpisodes;
+}
+
+function applyCanonicalEpisodes(
+  rows: WeeklyDiscoverRow[],
+  canonicalEpisodes: Map<string, number>,
+): { rows: WeeklyDiscoverRow[]; changed: number } {
+  let changed = 0;
+
+  const alignedRows = rows.map((row) => {
+    const key = weeklyEpisodeIdentityKey(row);
+    if (!key) return row;
+
+    const canonicalEpisode = canonicalEpisodes.get(key);
+    if (canonicalEpisode == null) return row;
+
+    const currentEpisode = toEpisodeNumber(row.episode);
+    if (currentEpisode === canonicalEpisode) return row;
+
+    changed += 1;
+    return { ...row, episode: canonicalEpisode };
+  });
+
+  return { rows: alignedRows, changed };
+}
+
 const strapiRepository: ContentRepository = {
   name: 'strapi',
-  async load() {
+  async load(locale: Locale) {
     const strapiUrl = (
       process.env.STRAPI_URL ??
       process.env.CMS_BASE_URL ??
       'https://cms-cooldown-roan.ariancoro.com'
     ).replace(/\/$/, '');
 
-    const response = await fetch(`${strapiUrl}/api/weekly-discover-feed`, {
+    const response = await fetch(`${strapiUrl}/api/weekly-discover-feed?locale=${locale}`, {
       next: { revalidate: 30 },
       headers: { Accept: 'application/json' },
     });
@@ -182,16 +282,48 @@ const strapiRepository: ContentRepository = {
     }
 
     const payload = (await response.json()) as { data?: unknown };
-    const weeklyDiscoverItems = Array.isArray(payload.data)
-      ? payload.data
-          .map((row) =>
-            normalizeItem({
-              ...((row ?? {}) as Partial<ContentItem>),
-              type: 'discover',
-            }),
-          )
-          .filter((item): item is ContentItem => item != null)
-      : [];
+    const weeklyDiscoverRows = parseWeeklyDiscoverRows(payload.data);
+    const canonicalEpisodes = buildEpisodeCanonicalMap(weeklyDiscoverRows);
+
+    if (locale && locale !== 'es') {
+      try {
+        const canonicalResponse = await fetch(weeklyDiscoverFeedUrl(strapiUrl, 'es'), {
+          next: { revalidate: 30 },
+          headers: { Accept: 'application/json' },
+        });
+
+        if (canonicalResponse.ok) {
+          const canonicalPayload = (await canonicalResponse.json()) as { data?: unknown };
+          const canonicalRows = parseWeeklyDiscoverRows(canonicalPayload.data);
+          const localeCanonicalEpisodes = buildEpisodeCanonicalMap(canonicalRows);
+
+          for (const [key, episode] of localeCanonicalEpisodes) {
+            canonicalEpisodes.set(key, episode);
+          }
+        }
+      } catch {
+        // Ignore auxiliary locale fetch errors; keep primary feed data.
+      }
+    }
+
+    const alignedWeeklyDiscoverRows = applyCanonicalEpisodes(
+      weeklyDiscoverRows,
+      canonicalEpisodes,
+    );
+    if (alignedWeeklyDiscoverRows.changed > 0) {
+      console.warn(
+        `[content] Weekly Discover locale episode mismatch corrected for ${alignedWeeklyDiscoverRows.changed} item(s).`,
+      );
+    }
+
+    const weeklyDiscoverItems = alignedWeeklyDiscoverRows.rows
+      .map((row) =>
+        normalizeItem({
+          ...(row as Partial<ContentItem>),
+          type: 'discover',
+        }),
+      )
+      .filter((item): item is ContentItem => item != null);
     const versionedItems = getVersionedItems().filter(
       (item) => item.type !== 'discover' || item.episode == null,
     );
@@ -257,11 +389,11 @@ function selectedRepository(): ContentRepository {
   }
 }
 
-const loadStore = cache(async (): Promise<ContentStore> => {
+const loadStore = cache(async (locale: Locale): Promise<ContentStore> => {
   const repo = selectedRepository();
 
   try {
-    const store = await repo.load();
+    const store = await repo.load(locale);
     const hasData = CONTENT_TYPES.some((type) => store.itemsByType[type].length > 0);
     if (hasData) {
       return store;
@@ -281,11 +413,12 @@ const loadStore = cache(async (): Promise<ContentStore> => {
 });
 
 export async function getContentSourceMeta() {
-  const store = await loadStore();
+  const store = await loadStore(DEFAULT_LOCALE);
   return { source: store.source };
 }
 
-export function labelForType(type: ContentType) {
+export function labelForType(type: ContentType, _locale: Locale = DEFAULT_LOCALE) {
+  void _locale;
   switch (type) {
     case 'discover':
       return 'Weekly Discover';
@@ -307,8 +440,8 @@ export function labelForCity(city: CitySlug) {
   }
 }
 
-export async function getItem(type: ContentType, slug: string) {
-  const store = await loadStore();
+export async function getItem(type: ContentType, slug: string, locale: Locale = DEFAULT_LOCALE) {
+  const store = await loadStore(locale);
   return store.itemsByType[type].find((x) => x.slug === slug) ?? null;
 }
 
@@ -316,8 +449,9 @@ export async function getPagedItems(
   type: ContentType,
   page: number,
   pageSize: number,
+  locale: Locale = DEFAULT_LOCALE,
 ) {
-  const store = await loadStore();
+  const store = await loadStore(locale);
   const items = store.itemsByType[type];
   const pageCount = Math.max(1, Math.ceil(items.length / pageSize));
   const safePage = Math.min(Math.max(1, page), pageCount);
@@ -326,8 +460,12 @@ export async function getPagedItems(
   return { items: slice, page: safePage, pageCount };
 }
 
-export async function getDiscoverArchivePaged(page: number, pageSize: number) {
-  const store = await loadStore();
+export async function getDiscoverArchivePaged(
+  page: number,
+  pageSize: number,
+  locale: Locale = DEFAULT_LOCALE,
+) {
+  const store = await loadStore(locale);
   const items = store.itemsByType.discover.filter((item) => item.episode == null);
   const pageCount = Math.max(1, Math.ceil(items.length / pageSize));
   const safePage = Math.min(Math.max(1, page), pageCount);
@@ -336,8 +474,11 @@ export async function getDiscoverArchivePaged(page: number, pageSize: number) {
   return { items: slice, page: safePage, pageCount };
 }
 
-export async function getDiscoverWeeklyNeighbors(slug: string) {
-  const store = await loadStore();
+export async function getDiscoverWeeklyNeighbors(
+  slug: string,
+  locale: Locale = DEFAULT_LOCALE,
+) {
+  const store = await loadStore(locale);
   const weeklyItems = store.itemsByType.discover.filter((item) => item.episode != null);
   const index = weeklyItems.findIndex((item) => item.slug === slug);
 
@@ -351,8 +492,8 @@ export async function getDiscoverWeeklyNeighbors(slug: string) {
   };
 }
 
-export async function getAllItems(): Promise<ContentItem[]> {
-  const store = await loadStore();
+export async function getAllItems(locale: Locale = DEFAULT_LOCALE): Promise<ContentItem[]> {
+  const store = await loadStore(locale);
   return Object.values(store.itemsByType).flat();
 }
 
@@ -360,12 +501,14 @@ export async function searchItems({
   q,
   type,
   city,
+  locale = DEFAULT_LOCALE,
 }: {
   q?: string;
   type?: ContentType;
   city?: CitySlug;
+  locale?: Locale;
 }) {
-  const items = await getAllItems();
+  const items = await getAllItems(locale);
   const normalized = (q ?? '').trim().toLowerCase();
 
   return items.filter((item) => {
