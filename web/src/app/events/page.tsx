@@ -14,6 +14,9 @@ export const metadata: Metadata = basicOg({
 type EventCity = 'barcelona' | 'madrid';
 type EventFormat = 'club' | 'listening' | 'talk' | 'gallery';
 type TicketStatus = 'tickets' | 'sold_out' | 'rsvp';
+type EventOrigin = 'cooldown_verified' | 'partner_event' | 'ra_imported';
+type Genre = 'techno' | 'house' | 'electro' | 'ambient' | 'community';
+type DateFilter = 'all' | 'next_7_days' | 'march_2026' | 'april_2026';
 
 type EventItem = {
   slug: string;
@@ -28,6 +31,10 @@ type EventItem = {
   capacity: number;
   status: TicketStatus;
   tags: string[];
+  origin: EventOrigin;
+  organizer: string;
+  genre: Genre;
+  featuredPartner: boolean;
 };
 
 const EVENTS: EventItem[] = [
@@ -43,7 +50,11 @@ const EVENTS: EventItem[] = [
     time: '23:30 - 06:00',
     capacity: 480,
     status: 'tickets',
-    tags: ['Techno', 'Peak Time'],
+    tags: ['Peak Time', 'All Nighter'],
+    origin: 'cooldown_verified',
+    organizer: 'Cooldown',
+    genre: 'techno',
+    featuredPartner: false,
   },
   {
     slug: 'vinyl-session-sants',
@@ -57,7 +68,11 @@ const EVENTS: EventItem[] = [
     time: '20:00 - 23:45',
     capacity: 140,
     status: 'rsvp',
-    tags: ['House', 'Vinyl Only'],
+    tags: ['Vinyl Only', 'Deep'],
+    origin: 'partner_event',
+    organizer: 'Sala Prisma',
+    genre: 'house',
+    featuredPartner: true,
   },
   {
     slug: 'mad-underground-forum',
@@ -71,7 +86,11 @@ const EVENTS: EventItem[] = [
     time: '19:00 - 21:30',
     capacity: 110,
     status: 'tickets',
-    tags: ['Community', 'Talk'],
+    tags: ['Roundtable', 'Industry'],
+    origin: 'ra_imported',
+    organizer: 'Underground Alliance',
+    genre: 'community',
+    featuredPartner: false,
   },
   {
     slug: 'linea-3-gallery-night',
@@ -85,7 +104,11 @@ const EVENTS: EventItem[] = [
     time: '21:00 - 01:00',
     capacity: 220,
     status: 'tickets',
-    tags: ['Audio Visual', 'Live Set'],
+    tags: ['AV', 'Live Set'],
+    origin: 'partner_event',
+    organizer: 'Linea 3 Collective',
+    genre: 'electro',
+    featuredPartner: true,
   },
   {
     slug: 'south-loop-warehouse',
@@ -100,6 +123,10 @@ const EVENTS: EventItem[] = [
     capacity: 700,
     status: 'sold_out',
     tags: ['Warehouse', 'Acid'],
+    origin: 'ra_imported',
+    organizer: 'Pulse Norte',
+    genre: 'techno',
+    featuredPartner: false,
   },
   {
     slug: 'roofline-sunset-edit',
@@ -114,6 +141,10 @@ const EVENTS: EventItem[] = [
     capacity: 260,
     status: 'tickets',
     tags: ['Sunset', 'Slow Burn'],
+    origin: 'cooldown_verified',
+    organizer: 'Cooldown',
+    genre: 'ambient',
+    featuredPartner: false,
   },
 ];
 
@@ -129,10 +160,38 @@ const FORMAT_OPTIONS: { value: EventFormat; label: string }[] = [
   { value: 'gallery', label: 'Gallery' },
 ];
 
-function buildHref(city?: EventCity, format?: EventFormat) {
+const ORGANIZER_OPTIONS = Array.from(new Set(EVENTS.map((event) => event.organizer))).map((organizer) => ({
+  value: organizer,
+  label: organizer,
+}));
+
+const GENRE_OPTIONS: { value: Genre; label: string }[] = [
+  { value: 'techno', label: 'Techno' },
+  { value: 'house', label: 'House' },
+  { value: 'electro', label: 'Electro' },
+  { value: 'ambient', label: 'Ambient' },
+  { value: 'community', label: 'Community' },
+];
+
+const DATE_OPTIONS: { value: DateFilter; label: string }[] = [
+  { value: 'next_7_days', label: 'Next 7 Days' },
+  { value: 'march_2026', label: 'March 2026' },
+  { value: 'april_2026', label: 'April 2026' },
+];
+
+function buildHref(filters: {
+  city?: EventCity;
+  format?: EventFormat;
+  organizer?: string;
+  genre?: Genre;
+  date?: DateFilter;
+}) {
   const params = new URLSearchParams();
-  if (city) params.set('city', city);
-  if (format) params.set('format', format);
+  if (filters.city) params.set('city', filters.city);
+  if (filters.format) params.set('format', filters.format);
+  if (filters.organizer) params.set('organizer', filters.organizer);
+  if (filters.genre) params.set('genre', filters.genre);
+  if (filters.date) params.set('date', filters.date);
   const query = params.toString();
   return query ? `/events?${query}` : '/events';
 }
@@ -176,6 +235,28 @@ function statusClass(status: TicketStatus) {
   }
 }
 
+function originLabel(origin: EventOrigin) {
+  switch (origin) {
+    case 'cooldown_verified':
+      return 'Cooldown Verified';
+    case 'partner_event':
+      return 'Partner Event';
+    case 'ra_imported':
+      return 'Imported from RA';
+  }
+}
+
+function originClass(origin: EventOrigin) {
+  switch (origin) {
+    case 'cooldown_verified':
+      return 'border-lime-400/50 bg-lime-400/10 text-lime-200';
+    case 'partner_event':
+      return 'border-sky-400/50 bg-sky-400/10 text-sky-100';
+    case 'ra_imported':
+      return 'border-violet-400/50 bg-violet-400/10 text-violet-100';
+  }
+}
+
 function formatDate(dateIso: string) {
   return new Intl.DateTimeFormat('es-ES', {
     weekday: 'short',
@@ -184,40 +265,59 @@ function formatDate(dateIso: string) {
   }).format(new Date(`${dateIso}T00:00:00`));
 }
 
+function matchesDateFilter(dateIso: string, dateFilter: DateFilter | undefined) {
+  if (!dateFilter || dateFilter === 'all') return true;
+
+  if (dateFilter === 'next_7_days') {
+    const eventTime = new Date(`${dateIso}T00:00:00Z`).getTime();
+    const start = new Date('2026-03-19T00:00:00Z').getTime();
+    const end = new Date('2026-03-26T23:59:59Z').getTime();
+    return eventTime >= start && eventTime <= end;
+  }
+
+  if (dateFilter === 'march_2026') return dateIso.startsWith('2026-03');
+  return dateIso.startsWith('2026-04');
+}
+
 export default async function EventsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ city?: string; format?: string }>;
+  searchParams: Promise<{ city?: string; format?: string; organizer?: string; genre?: string; date?: string }>;
 }) {
-  const { city, format } = await searchParams;
+  const { city, format, organizer, genre, date } = await searchParams;
 
   const cityFilter = CITY_OPTIONS.find((option) => option.value === city)?.value;
   const formatFilter = FORMAT_OPTIONS.find((option) => option.value === format)?.value;
+  const organizerFilter = ORGANIZER_OPTIONS.find((option) => option.value === organizer)?.value;
+  const genreFilter = GENRE_OPTIONS.find((option) => option.value === genre)?.value;
+  const dateFilter = DATE_OPTIONS.find((option) => option.value === date)?.value;
 
   const filtered = EVENTS.filter((item) => {
     if (cityFilter && item.city !== cityFilter) return false;
     if (formatFilter && item.format !== formatFilter) return false;
+    if (organizerFilter && item.organizer !== organizerFilter) return false;
+    if (genreFilter && item.genre !== genreFilter) return false;
+    if (!matchesDateFilter(item.dateIso, dateFilter)) return false;
     return true;
   }).sort((a, b) => (a.dateIso < b.dateIso ? -1 : 1));
 
+  const featuredPartners = filtered.filter((event) => event.featuredPartner);
   const availableCount = filtered.filter((item) => item.status !== 'sold_out').length;
 
   return (
     <div className="space-y-8">
       <PageHeader
         title="Events"
-        caption="Agenda curada de club culture en Barcelona y Madrid. Filtra por ciudad o formato para escanear la semana y planificar con rapidez."
+        caption="Agenda curada de club culture en Barcelona y Madrid. Filtra por organizador, fecha o genero para escanear la semana y planificar con rapidez."
       />
 
       <section className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
         <div className="relative overflow-hidden border border-border bg-surface p-5">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,hsl(var(--accent)/0.2),transparent_52%)]" />
-          <p className="relative font-display text-[10px] font-bold uppercase tracking-[0.26em] text-accent">
-            Signal Board
-          </p>
+          <p className="relative font-display text-[10px] font-bold uppercase tracking-[0.26em] text-accent">Signal Board</p>
           <p className="relative mt-3 max-w-[56ch] text-sm leading-relaxed text-muted">
             Seleccionamos formatos que funcionen tanto para descubrimiento musical como para comunidad local.
-            El calendario se actualiza semanalmente y prioriza eventos con narrativa editorial.
+            El calendario se actualiza semanalmente y muestra el origen de cada evento para mejorar la confianza.
           </p>
           <div className="relative mt-5 grid gap-2 sm:grid-cols-3">
             <div className="border border-border bg-background p-3">
@@ -229,8 +329,8 @@ export default async function EventsPage({
               <p className="mt-2 font-display text-2xl font-black uppercase leading-none">{availableCount}</p>
             </div>
             <div className="border border-border bg-background p-3">
-              <p className="font-display text-[10px] font-bold uppercase tracking-[0.22em] text-muted">Cities</p>
-              <p className="mt-2 font-display text-2xl font-black uppercase leading-none">2</p>
+              <p className="font-display text-[10px] font-bold uppercase tracking-[0.22em] text-muted">Partners</p>
+              <p className="mt-2 font-display text-2xl font-black uppercase leading-none">{featuredPartners.length}</p>
             </div>
           </div>
         </div>
@@ -238,12 +338,47 @@ export default async function EventsPage({
         <aside className="border border-border bg-surface p-5">
           <h2 className="font-display text-[12px] font-bold uppercase tracking-[0.2em] text-accent">How to read</h2>
           <ul className="mt-3 space-y-2 text-sm text-muted">
-            <li>1. Filtra por ciudad para reducir el ruido.</li>
-            <li>2. Usa formato para encontrar el tipo de energia.</li>
-            <li>3. Prioriza eventos con badge Tickets o RSVP.</li>
+            <li>1. Filtra por organizador para reducir el ruido.</li>
+            <li>2. Usa fecha y genero para encontrar energia compatible.</li>
+            <li>3. Prioriza origen y badge de disponibilidad.</li>
           </ul>
         </aside>
       </section>
+
+      {featuredPartners.length > 0 ? (
+        <section className="space-y-3" aria-labelledby="partner-highlights-title">
+          <div className="flex items-center justify-between gap-2">
+            <h2
+              id="partner-highlights-title"
+              className="font-display text-[11px] font-bold uppercase tracking-[0.24em] text-muted"
+            >
+              Partner Highlights
+            </h2>
+            <span className="font-display text-[10px] font-bold uppercase tracking-[0.18em] text-accent">
+              {featuredPartners.length} featured
+            </span>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            {featuredPartners.map((event) => (
+              <article key={`partner-${event.slug}`} className="border border-border bg-surface p-4">
+                <p className="font-display text-[9px] font-bold uppercase tracking-[0.2em] text-accent">{event.organizer}</p>
+                <h3 className="mt-2 font-display text-xl font-black uppercase leading-tight">{event.title}</h3>
+                <p className="mt-2 text-sm text-muted">{event.blurb}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <span
+                    className={`inline-flex items-center border px-2 py-1 font-display text-[9px] font-bold uppercase tracking-[0.16em] ${originClass(event.origin)}`}
+                  >
+                    {originLabel(event.origin)}
+                  </span>
+                  <span className="inline-flex items-center border border-border bg-background px-2 py-1 font-display text-[9px] font-bold uppercase tracking-[0.16em] text-muted">
+                    {formatDate(event.dateIso)}
+                  </span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="space-y-4" aria-labelledby="event-filters-title">
         <h2
@@ -253,10 +388,10 @@ export default async function EventsPage({
           Filters
         </h2>
 
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid gap-3 lg:grid-cols-3">
           <div className="flex flex-wrap gap-2">
             <Link
-              href={buildHref(undefined, formatFilter)}
+              href={buildHref({ format: formatFilter, organizer: organizerFilter, genre: genreFilter, date: dateFilter })}
               className="inline-flex items-center border border-border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.18em] transition-colors hover:border-accent hover:text-accent"
             >
               All Cities
@@ -266,7 +401,13 @@ export default async function EventsPage({
               return (
                 <Link
                   key={option.value}
-                  href={buildHref(option.value, formatFilter)}
+                  href={buildHref({
+                    city: option.value,
+                    format: formatFilter,
+                    organizer: organizerFilter,
+                    genre: genreFilter,
+                    date: dateFilter,
+                  })}
                   aria-pressed={active}
                   className={`inline-flex items-center border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.18em] transition-colors ${
                     active
@@ -282,7 +423,7 @@ export default async function EventsPage({
 
           <div className="flex flex-wrap gap-2">
             <Link
-              href={buildHref(cityFilter, undefined)}
+              href={buildHref({ city: cityFilter, organizer: organizerFilter, genre: genreFilter, date: dateFilter })}
               className="inline-flex items-center border border-border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.18em] transition-colors hover:border-accent hover:text-accent"
             >
               All Formats
@@ -292,7 +433,109 @@ export default async function EventsPage({
               return (
                 <Link
                   key={option.value}
-                  href={buildHref(cityFilter, option.value)}
+                  href={buildHref({
+                    city: cityFilter,
+                    format: option.value,
+                    organizer: organizerFilter,
+                    genre: genreFilter,
+                    date: dateFilter,
+                  })}
+                  aria-pressed={active}
+                  className={`inline-flex items-center border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.18em] transition-colors ${
+                    active
+                      ? 'border-accent bg-accent text-accent-foreground'
+                      : 'border-border hover:border-accent hover:text-accent'
+                  }`}
+                >
+                  {option.label}
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href={buildHref({ city: cityFilter, format: formatFilter, genre: genreFilter, date: dateFilter })}
+              className="inline-flex items-center border border-border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.18em] transition-colors hover:border-accent hover:text-accent"
+            >
+              All Organizers
+            </Link>
+            {ORGANIZER_OPTIONS.map((option) => {
+              const active = organizerFilter === option.value;
+              return (
+                <Link
+                  key={option.value}
+                  href={buildHref({
+                    city: cityFilter,
+                    format: formatFilter,
+                    organizer: option.value,
+                    genre: genreFilter,
+                    date: dateFilter,
+                  })}
+                  aria-pressed={active}
+                  className={`inline-flex items-center border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.18em] transition-colors ${
+                    active
+                      ? 'border-accent bg-accent text-accent-foreground'
+                      : 'border-border hover:border-accent hover:text-accent'
+                  }`}
+                >
+                  {option.label}
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="flex flex-wrap gap-2 lg:col-span-2">
+            <Link
+              href={buildHref({ city: cityFilter, format: formatFilter, organizer: organizerFilter, date: dateFilter })}
+              className="inline-flex items-center border border-border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.18em] transition-colors hover:border-accent hover:text-accent"
+            >
+              All Genres
+            </Link>
+            {GENRE_OPTIONS.map((option) => {
+              const active = genreFilter === option.value;
+              return (
+                <Link
+                  key={option.value}
+                  href={buildHref({
+                    city: cityFilter,
+                    format: formatFilter,
+                    organizer: organizerFilter,
+                    genre: option.value,
+                    date: dateFilter,
+                  })}
+                  aria-pressed={active}
+                  className={`inline-flex items-center border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.18em] transition-colors ${
+                    active
+                      ? 'border-accent bg-accent text-accent-foreground'
+                      : 'border-border hover:border-accent hover:text-accent'
+                  }`}
+                >
+                  {option.label}
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="flex flex-wrap gap-2 lg:col-span-1">
+            <Link
+              href={buildHref({ city: cityFilter, format: formatFilter, organizer: organizerFilter, genre: genreFilter })}
+              className="inline-flex items-center border border-border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.18em] transition-colors hover:border-accent hover:text-accent"
+            >
+              All Dates
+            </Link>
+            {DATE_OPTIONS.map((option) => {
+              const active = dateFilter === option.value;
+              return (
+                <Link
+                  key={option.value}
+                  href={buildHref({
+                    city: cityFilter,
+                    format: formatFilter,
+                    organizer: organizerFilter,
+                    genre: genreFilter,
+                    date: option.value,
+                  })}
                   aria-pressed={active}
                   className={`inline-flex items-center border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.18em] transition-colors ${
                     active
@@ -337,6 +580,10 @@ export default async function EventsPage({
 
               <dl className="mt-4 grid gap-2 text-xs text-muted sm:grid-cols-3">
                 <div>
+                  <dt className="font-display text-[9px] font-bold uppercase tracking-[0.2em] text-foreground">Organizer</dt>
+                  <dd className="mt-1">{event.organizer}</dd>
+                </div>
+                <div>
                   <dt className="font-display text-[9px] font-bold uppercase tracking-[0.2em] text-foreground">City</dt>
                   <dd className="mt-1">{cityLabel(event.city)}</dd>
                 </div>
@@ -344,15 +591,19 @@ export default async function EventsPage({
                   <dt className="font-display text-[9px] font-bold uppercase tracking-[0.2em] text-foreground">Venue</dt>
                   <dd className="mt-1">{event.venue}</dd>
                 </div>
-                <div>
-                  <dt className="font-display text-[9px] font-bold uppercase tracking-[0.2em] text-foreground">Capacity</dt>
-                  <dd className="mt-1">{event.capacity} pax</dd>
-                </div>
               </dl>
 
               <div className="mt-3 flex flex-wrap items-center gap-2">
+                <span
+                  className={`inline-flex items-center border px-2 py-1 font-display text-[9px] font-bold uppercase tracking-[0.16em] ${originClass(event.origin)}`}
+                >
+                  {originLabel(event.origin)}
+                </span>
                 <span className="inline-flex items-center border border-border bg-background px-2 py-1 font-display text-[9px] font-bold uppercase tracking-[0.16em] text-muted">
                   {formatLabel(event.format)}
+                </span>
+                <span className="inline-flex items-center border border-border bg-background px-2 py-1 font-display text-[9px] font-bold uppercase tracking-[0.16em] text-muted">
+                  {event.genre}
                 </span>
                 <span className="inline-flex items-center border border-border bg-background px-2 py-1 font-display text-[9px] font-bold uppercase tracking-[0.16em] text-muted">
                   {event.district}
@@ -372,7 +623,7 @@ export default async function EventsPage({
       ) : (
         <section className="border border-border bg-surface p-6 text-center">
           <h2 className="font-display text-xl font-black uppercase">No events match this filter</h2>
-          <p className="mt-2 text-sm text-muted">Prueba otra combinacion de ciudad y formato para ver la agenda completa.</p>
+          <p className="mt-2 text-sm text-muted">Prueba otra combinacion de filtros para ver la agenda completa.</p>
           <Link
             href="/events"
             className="mt-4 inline-flex items-center bg-accent px-4 py-2 font-display text-[10px] font-bold uppercase tracking-[0.2em] text-accent-foreground"
