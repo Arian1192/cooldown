@@ -123,10 +123,10 @@ export default async function EventsPage({
 
       <PageHeader title="Events" caption={caption} />
 
-      <Card className="space-y-6">
+      <Card className="space-y-6 p-5 sm:p-6">
         <div>
           <CardTitle>{locale === 'en' ? 'Filters' : 'Filtros'}</CardTitle>
-          <CardCaption>
+          <CardCaption className="text-xs normal-case tracking-[0.05em]">
             {locale === 'en'
               ? 'City and quick discovery filters in one control block.'
               : 'Ciudad y filtros rapidos de descubrimiento en un solo bloque de control.'}
@@ -137,7 +137,7 @@ export default async function EventsPage({
           <p className="font-display text-[11px] font-black uppercase tracking-[0.18em] text-muted">
             {locale === 'en' ? 'City' : 'Ciudad'}
           </p>
-          <div className="mt-2 -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0">
+          <div className="mt-2 flex flex-wrap gap-2">
             {CITY_FILTERS.map((filter) => (
               <Link
                 key={filter}
@@ -151,8 +151,8 @@ export default async function EventsPage({
                 }}
                 className={
                   filter === cityFilter
-                    ? 'shrink-0 whitespace-nowrap border border-accent bg-accent px-4 py-2 text-center font-display text-[12px] font-black uppercase tracking-[0.15em] text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
-                    : 'shrink-0 whitespace-nowrap border border-border px-4 py-2 text-center font-display text-[12px] font-bold uppercase tracking-[0.15em] text-muted transition-colors hover:border-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+                    ? 'shrink-0 whitespace-nowrap border border-accent bg-accent px-5 py-2.5 text-center font-display text-[12px] font-black uppercase tracking-[0.1em] text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+                    : 'shrink-0 whitespace-nowrap border border-border px-5 py-2.5 text-center font-display text-[12px] font-bold uppercase tracking-[0.1em] text-muted transition-colors hover:border-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
                 }
               >
                 {cityLabel(filter, locale)}
@@ -177,8 +177,8 @@ export default async function EventsPage({
               }}
               className={
                 selectedDay === today
-                  ? 'border border-accent bg-accent px-3 py-2 font-display text-[12px] font-bold uppercase tracking-[0.14em] text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
-                  : 'border border-border px-3 py-2 font-display text-[12px] font-bold uppercase tracking-[0.14em] text-muted transition-colors hover:border-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+                  ? 'border border-accent bg-accent px-4 py-2.5 font-display text-[12px] font-bold uppercase tracking-[0.1em] text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+                  : 'border border-border px-4 py-2.5 font-display text-[12px] font-bold uppercase tracking-[0.1em] text-muted transition-colors hover:border-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
               }
             >
               {locale === 'en' ? 'Today' : 'Hoy'}
@@ -195,8 +195,8 @@ export default async function EventsPage({
               }}
               className={
                 selectedDay === weekendDay
-                  ? 'border border-accent bg-accent px-3 py-2 font-display text-[12px] font-bold uppercase tracking-[0.14em] text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
-                  : 'border border-border px-3 py-2 font-display text-[12px] font-bold uppercase tracking-[0.14em] text-muted transition-colors hover:border-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+                  ? 'border border-accent bg-accent px-4 py-2.5 font-display text-[12px] font-bold uppercase tracking-[0.1em] text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+                  : 'border border-border px-4 py-2.5 font-display text-[12px] font-bold uppercase tracking-[0.1em] text-muted transition-colors hover:border-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
               }
             >
               {locale === 'en' ? 'Weekend' : 'Fin de semana'}
@@ -212,8 +212,8 @@ export default async function EventsPage({
               }}
               className={
                 activeMonth === currentMonth
-                  ? 'border border-accent bg-accent px-3 py-2 font-display text-[12px] font-bold uppercase tracking-[0.14em] text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
-                  : 'border border-border px-3 py-2 font-display text-[12px] font-bold uppercase tracking-[0.14em] text-muted transition-colors hover:border-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+                  ? 'border border-accent bg-accent px-4 py-2.5 font-display text-[12px] font-bold uppercase tracking-[0.1em] text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+                  : 'border border-border px-4 py-2.5 font-display text-[12px] font-bold uppercase tracking-[0.1em] text-muted transition-colors hover:border-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
               }
             >
               {locale === 'en' ? 'This month' : 'Este mes'}
@@ -224,7 +224,7 @@ export default async function EventsPage({
 
       {monthEvents.length > 0 ? (
         <>
-          <Card className="space-y-4">
+          <Card className="space-y-5 p-5 sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <CardTitle>{locale === 'en' ? 'Calendar' : 'Calendario'}</CardTitle>
@@ -244,8 +244,8 @@ export default async function EventsPage({
                     }}
                     className={
                       candidateMonth === activeMonth
-                        ? 'border border-accent bg-accent px-3 py-2 font-display text-[12px] font-bold uppercase tracking-[0.14em] text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
-                        : 'border border-border px-3 py-2 font-display text-[12px] font-bold uppercase tracking-[0.14em] text-muted transition-colors hover:border-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+                        ? 'border border-accent bg-accent px-4 py-2.5 font-display text-[12px] font-bold uppercase tracking-[0.1em] text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+                        : 'border border-border px-4 py-2.5 font-display text-[12px] font-bold uppercase tracking-[0.1em] text-muted transition-colors hover:border-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background'
                     }
                   >
                     {formatMonthChip(candidateMonth, locale)}
@@ -254,7 +254,7 @@ export default async function EventsPage({
               </div>
             </div>
 
-            <div className="grid grid-cols-7 gap-2 text-center">
+            <div className="grid grid-cols-7 gap-2.5 text-center">
               {weekDays.map((label) => (
                 <div
                   key={label}
@@ -295,7 +295,7 @@ export default async function EventsPage({
                         day: entry.dayKey,
                       },
                     }}
-                    className={`min-h-20 border p-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background ${baseClasses}`}
+                    className={`min-h-24 border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background ${baseClasses}`}
                   >
                     <div className="font-display text-lg font-black leading-none">
                       {entry.dayNumber}
@@ -307,7 +307,7 @@ export default async function EventsPage({
                 ) : (
                   <div
                     key={entry.dayKey}
-                    className={`min-h-20 border p-2 text-left ${baseClasses}`}
+                    className={`min-h-24 border p-3 text-left ${baseClasses}`}
                   >
                     <div className="font-display text-lg font-black leading-none opacity-70">
                       {entry.dayNumber}
@@ -332,7 +332,7 @@ export default async function EventsPage({
             {selectedEvents.length > 0 ? (
               <EventFlyerGallery events={selectedEvents} locale={locale} />
             ) : (
-              <Card>
+              <Card className="p-5 sm:p-6">
                 <CardTitle>{locale === 'en' ? 'No events this day' : 'No hay eventos ese dia'}</CardTitle>
                 <CardCaption>
                   {locale === 'en'
@@ -368,7 +368,7 @@ export default async function EventsPage({
           ) : null}
         </>
       ) : (
-        <Card>
+        <Card className="p-5 sm:p-6">
           <CardTitle>{locale === 'en' ? 'No events available' : 'No hay eventos disponibles'}</CardTitle>
           <CardCaption>
             {locale === 'en'
@@ -379,7 +379,7 @@ export default async function EventsPage({
       )}
 
       {unavailableCities.length > 0 ? (
-        <Card>
+        <Card className="p-5 sm:p-6">
           <CardTitle>{locale === 'en' ? 'Source warning' : 'Aviso de fuente'}</CardTitle>
           <CardCaption>
             {locale === 'en'
