@@ -19,6 +19,7 @@ export function EventFlyerGallery({ events, locale }: Props) {
   const [activeDialog, setActiveDialog] = useState<ActiveDialog | null>(null);
   const [loadedImages, setLoadedImages] = useState<Record<string, boolean>>({});
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!activeDialog) return;
@@ -34,6 +35,31 @@ export function EventFlyerGallery({ events, locale }: Props) {
           current?.trigger?.focus();
           return null;
         });
+        return;
+      }
+
+      if (event.key === 'Tab') {
+        const dialogElement = dialogRef.current;
+        if (!dialogElement) return;
+        const focusable = dialogElement.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        );
+        if (focusable.length === 0) return;
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const activeElement = document.activeElement as HTMLElement | null;
+
+        if (event.shiftKey && activeElement === first) {
+          event.preventDefault();
+          last.focus();
+          return;
+        }
+
+        if (!event.shiftKey && activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
       }
     };
 
@@ -69,7 +95,7 @@ export function EventFlyerGallery({ events, locale }: Props) {
               onClick={(clickEvent) => {
                 openDialog(event, clickEvent.currentTarget);
               }}
-              className="absolute inset-0 z-10 cursor-zoom-in"
+              className="absolute inset-0 z-10 cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               aria-label={
                 locale === 'en'
                   ? `Open flyer for ${event.title}`
@@ -85,7 +111,11 @@ export function EventFlyerGallery({ events, locale }: Props) {
                   ) : null}
                   <Image
                     src={event.imageUrl}
-                    alt=""
+                    alt={
+                      locale === 'en'
+                        ? `Flyer for ${event.title} at ${event.venue}`
+                        : `Flyer de ${event.title} en ${event.venue}`
+                    }
                     fill
                     unoptimized
                     loading="lazy"
@@ -104,8 +134,8 @@ export function EventFlyerGallery({ events, locale }: Props) {
 
               <div className="absolute inset-0 bg-linear-to-t from-black/95 via-black/55 to-black/20" />
 
-              <div className="absolute bottom-0 left-0 right-0 z-20 space-y-3 p-3">
-                <div className="space-y-1.5 border-l-2 border-accent bg-black/35 p-3 backdrop-blur-[1.5px]">
+              <div className="absolute bottom-0 left-0 right-0 z-20 space-y-2 p-3 sm:p-4">
+                <div className="space-y-2 border-l-2 border-accent bg-black/55 p-3 backdrop-blur-[2px]">
                   <p className="font-display text-[10px] font-black uppercase tracking-[0.2em] text-accent">
                     {event.city === 'barcelona' ? 'Barcelona' : 'Madrid'}
                   </p>
@@ -119,14 +149,14 @@ export function EventFlyerGallery({ events, locale }: Props) {
                 </div>
 
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-display text-[10px] font-bold uppercase tracking-[0.18em] text-white/75">
+                  <p className="font-display text-[11px] font-bold uppercase tracking-[0.16em] text-white/85">
                     {locale === 'en' ? 'Tap flyer to view full poster' : 'Toca el flyer para ver el cartel'}
                   </p>
                   <a
                     href={event.sourceUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="relative z-30 inline-flex border border-white/35 bg-black/40 px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.15em] text-white transition-colors hover:border-accent hover:text-accent"
+                    className="relative z-30 inline-flex border border-white/45 bg-black/55 px-3 py-2 font-display text-[12px] font-bold uppercase tracking-[0.14em] text-white transition-colors hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
                   >
                     {locale === 'en' ? 'Open in RA' : 'Abrir en RA'}
                   </a>
@@ -148,6 +178,7 @@ export function EventFlyerGallery({ events, locale }: Props) {
           }}
         >
           <div
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby="event-flyer-title"
@@ -157,17 +188,21 @@ export function EventFlyerGallery({ events, locale }: Props) {
               ref={closeButtonRef}
               type="button"
               onClick={closeDialog}
-            className="absolute right-3 top-3 z-20 border border-white/35 bg-black/65 px-3 py-1 font-display text-[10px] font-bold uppercase tracking-[0.18em] text-white transition-colors hover:border-accent hover:text-accent"
-          >
-            {locale === 'en' ? 'Close' : 'Cerrar'}
-          </button>
+              className="absolute right-3 top-3 z-20 border border-white/45 bg-black/70 px-3 py-2 font-display text-[12px] font-bold uppercase tracking-[0.15em] text-white transition-colors hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+            >
+              {locale === 'en' ? 'Close' : 'Cerrar'}
+            </button>
 
             <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_320px]">
               <div className="relative flex max-h-[70vh] items-center justify-center bg-black">
                 {activeDialog.event.imageUrl ? (
                   <Image
                     src={activeDialog.event.imageUrl}
-                    alt={activeDialog.event.title}
+                    alt={
+                      locale === 'en'
+                        ? `Flyer for ${activeDialog.event.title} at ${activeDialog.event.venue}`
+                        : `Flyer de ${activeDialog.event.title} en ${activeDialog.event.venue}`
+                    }
                     width={1400}
                     height={1800}
                     unoptimized
@@ -198,7 +233,7 @@ export function EventFlyerGallery({ events, locale }: Props) {
                   href={activeDialog.event.sourceUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex w-full items-center justify-center border border-accent bg-accent px-4 py-2.5 font-display text-[11px] font-black uppercase tracking-[0.16em] text-accent-foreground transition-colors hover:bg-accent/90"
+                  className="inline-flex w-full items-center justify-center border border-accent bg-accent px-4 py-2.5 font-display text-[12px] font-black uppercase tracking-[0.15em] text-accent-foreground transition-colors hover:bg-accent/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
                   {locale === 'en' ? 'Open in RA' : 'Abrir en RA'}
                 </a>
