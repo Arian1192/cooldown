@@ -60,7 +60,10 @@ export function EventFlyerGallery({ events, locale }: Props) {
     <>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         {events.map((event) => (
-          <article key={event.id} className="group relative overflow-hidden border border-border bg-surface">
+          <article
+            key={event.id}
+            className="group relative overflow-hidden border border-border bg-surface transition-colors hover:border-accent/70"
+          >
             <button
               type="button"
               onClick={(clickEvent) => {
@@ -99,27 +102,35 @@ export function EventFlyerGallery({ events, locale }: Props) {
                 <div className="absolute inset-0 bg-linear-to-br from-accent/35 via-accent-2/25 to-background" />
               )}
 
-              <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/45 to-black/15" />
+              <div className="absolute inset-0 bg-linear-to-t from-black/95 via-black/55 to-black/20" />
 
-              <div className="absolute bottom-0 left-0 right-0 z-20 p-3">
-                <p className="font-display text-[10px] font-bold uppercase tracking-[0.18em] text-accent">
-                  {event.city === 'barcelona' ? 'Barcelona' : 'Madrid'}
-                </p>
-                <h3 className="mt-1 font-display text-lg font-black uppercase leading-tight tracking-tight text-white md:text-xl">
-                  {event.title}
-                </h3>
-                <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-white/85 md:text-sm">
-                  <p>{event.venue}</p>
-                  <p>{formatEventDateLabel(event.startDateIso, locale)}</p>
+              <div className="absolute bottom-0 left-0 right-0 z-20 space-y-3 p-3">
+                <div className="space-y-1.5 border-l-2 border-accent bg-black/35 p-3 backdrop-blur-[1.5px]">
+                  <p className="font-display text-[10px] font-black uppercase tracking-[0.2em] text-accent">
+                    {event.city === 'barcelona' ? 'Barcelona' : 'Madrid'}
+                  </p>
+                  <h3 className="font-display text-base font-black uppercase leading-tight tracking-[0.02em] text-white sm:text-lg md:text-xl">
+                    {event.title}
+                  </h3>
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-white/85 md:text-sm">
+                    <p>{event.venue}</p>
+                    <p>{formatEventDateLabel(event.startDateIso, locale)}</p>
+                  </div>
                 </div>
-                <a
-                  href={event.sourceUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="relative z-30 mt-3 inline-flex border border-white/30 bg-black/35 px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.15em] text-white transition-colors hover:border-accent hover:text-accent"
-                >
-                  {locale === 'en' ? 'Open in RA' : 'Abrir en RA'}
-                </a>
+
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="font-display text-[10px] font-bold uppercase tracking-[0.18em] text-white/75">
+                    {locale === 'en' ? 'Tap flyer to view full poster' : 'Toca el flyer para ver el cartel'}
+                  </p>
+                  <a
+                    href={event.sourceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="relative z-30 inline-flex border border-white/35 bg-black/40 px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.15em] text-white transition-colors hover:border-accent hover:text-accent"
+                  >
+                    {locale === 'en' ? 'Open in RA' : 'Abrir en RA'}
+                  </a>
+                </div>
               </div>
             </div>
           </article>
@@ -146,10 +157,10 @@ export function EventFlyerGallery({ events, locale }: Props) {
               ref={closeButtonRef}
               type="button"
               onClick={closeDialog}
-              className="absolute right-3 top-3 z-20 border border-white/35 bg-black/60 px-2 py-1 font-display text-[10px] font-bold uppercase tracking-[0.18em] text-white transition-colors hover:border-accent hover:text-accent"
-            >
-              {locale === 'en' ? 'Close' : 'Cerrar'}
-            </button>
+            className="absolute right-3 top-3 z-20 border border-white/35 bg-black/65 px-3 py-1 font-display text-[10px] font-bold uppercase tracking-[0.18em] text-white transition-colors hover:border-accent hover:text-accent"
+          >
+            {locale === 'en' ? 'Close' : 'Cerrar'}
+          </button>
 
             <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_320px]">
               <div className="relative flex max-h-[70vh] items-center justify-center bg-black">
@@ -169,25 +180,25 @@ export function EventFlyerGallery({ events, locale }: Props) {
                 )}
               </div>
 
-              <div className="space-y-3 border-t border-border p-5 lg:border-l lg:border-t-0">
-                <p className="font-display text-[10px] font-bold uppercase tracking-[0.18em] text-muted">
+              <div className="space-y-4 border-t border-border p-5 lg:border-l lg:border-t-0">
+                <p className="font-display text-[10px] font-black uppercase tracking-[0.2em] text-muted">
                   {activeDialog.event.city === 'barcelona' ? 'Barcelona' : 'Madrid'}
                 </p>
                 <h3
                   id="event-flyer-title"
-                  className="font-display text-xl font-black uppercase leading-tight tracking-tight"
+                  className="font-display text-xl font-black uppercase leading-tight tracking-[0.02em]"
                 >
                   {activeDialog.event.title}
                 </h3>
-                <p className="text-sm text-muted">{activeDialog.event.venue}</p>
-                <p className="text-sm text-muted">
-                  {formatEventDateLabel(activeDialog.event.startDateIso, locale)}
-                </p>
+                <div className="space-y-1 border-l-2 border-accent/70 pl-3 text-sm text-muted">
+                  <p>{activeDialog.event.venue}</p>
+                  <p>{formatEventDateLabel(activeDialog.event.startDateIso, locale)}</p>
+                </div>
                 <a
                   href={activeDialog.event.sourceUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex border border-border px-4 py-2 font-display text-[11px] font-bold uppercase tracking-[0.16em] transition-colors hover:border-accent hover:text-accent"
+                  className="inline-flex w-full items-center justify-center border border-accent bg-accent px-4 py-2.5 font-display text-[11px] font-black uppercase tracking-[0.16em] text-accent-foreground transition-colors hover:bg-accent/90"
                 >
                   {locale === 'en' ? 'Open in RA' : 'Abrir en RA'}
                 </a>
