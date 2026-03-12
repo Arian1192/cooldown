@@ -43,6 +43,7 @@ export default async function EventsPage({
     : 'all';
   const today = new Date().toISOString().slice(0, 10);
   const currentMonth = today.slice(0, 7);
+  const discoveryStart = firstDayOfMonth(currentMonth);
   const requestedMonth = MONTH_FORMAT.test(month ?? '') ? (month as string) : undefined;
   const requestedDay = DAY_FORMAT.test(day ?? '') ? (day as string) : undefined;
   const horizonEnd = addDays(today, 120);
@@ -51,7 +52,7 @@ export default async function EventsPage({
     await getResidentAdvisorEvents({
       city: cityFilter,
       limit: 500,
-      fromDate: today,
+      fromDate: discoveryStart,
       toDate: horizonEnd,
     });
 
@@ -66,10 +67,17 @@ export default async function EventsPage({
   const monthEnd = lastDayOfMonth(activeMonth);
   const rangeStart = activeMonth === currentMonth ? today : monthStart;
 
-  const monthEvents = events.filter((event) => {
+  const monthEventsFromRange = events.filter((event) => {
     const dayKey = event.startDateIso.slice(0, 10);
     return dayKey >= monthStart && dayKey <= monthEnd && dayKey >= rangeStart;
   });
+  const monthEvents =
+    monthEventsFromRange.length > 0
+      ? monthEventsFromRange
+      : events.filter((event) => {
+          const dayKey = event.startDateIso.slice(0, 10);
+          return dayKey >= monthStart && dayKey <= monthEnd;
+        });
 
   const byDay = groupByDay(monthEvents);
   const calendarDays = buildCalendarDays(activeMonth, byDay);
