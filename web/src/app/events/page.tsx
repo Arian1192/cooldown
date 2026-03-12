@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
+import { EventFlyerGallery } from '@/components/events/EventFlyerGallery';
 import { Card, CardCaption, CardTitle } from '@/components/ui/Card';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { getRequestLocale } from '@/lib/requestLocale';
 import {
-  formatEventDateLabel,
   getResidentAdvisorEvents,
   type EventCityFilter,
   type RaEvent,
@@ -43,6 +43,7 @@ export default async function EventsPage({
     : 'all';
   const today = new Date().toISOString().slice(0, 10);
   const currentMonth = today.slice(0, 7);
+  const weekendDay = nextWeekendStart(today);
   const discoveryStart = firstDayOfMonth(currentMonth);
   const requestedMonth = MONTH_FORMAT.test(month ?? '') ? (month as string) : undefined;
   const requestedDay = DAY_FORMAT.test(day ?? '') ? (day as string) : undefined;
@@ -130,7 +131,7 @@ export default async function EventsPage({
             : 'Resident Advisor GraphQL con filtros de mes/dia controlados por URL.'}
         </CardCaption>
 
-        <div className="mt-4 grid gap-2 sm:grid-cols-3">
+        <div className="mt-4 -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0">
           {CITY_FILTERS.map((filter) => (
             <Link
               key={filter}
@@ -144,13 +145,77 @@ export default async function EventsPage({
               }}
               className={
                 filter === cityFilter
-                  ? 'border border-accent bg-accent px-3 py-2 text-center font-display text-[11px] font-black uppercase tracking-[0.18em] text-accent-foreground'
-                  : 'border border-border px-3 py-2 text-center font-display text-[11px] font-bold uppercase tracking-[0.18em] text-muted transition-colors hover:border-accent hover:text-foreground'
+                  ? 'shrink-0 whitespace-nowrap border border-accent bg-accent px-4 py-2 text-center font-display text-[11px] font-black uppercase tracking-[0.18em] text-accent-foreground'
+                  : 'shrink-0 whitespace-nowrap border border-border px-4 py-2 text-center font-display text-[11px] font-bold uppercase tracking-[0.18em] text-muted transition-colors hover:border-accent hover:text-foreground'
               }
             >
               {cityLabel(filter)}
             </Link>
           ))}
+        </div>
+      </Card>
+
+      <Card>
+        <CardTitle>{locale === 'en' ? 'Quick filters' : 'Filtros rapidos'}</CardTitle>
+        <CardCaption>
+          {locale === 'en'
+            ? 'Jump to common discovery windows without scrolling.'
+            : 'Salta a ventanas de descubrimiento comunes sin scroll largo.'}
+        </CardCaption>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Link
+            href={{
+              pathname: '/events',
+              query: {
+                ...(cityFilter === 'all' ? {} : { city: cityFilter }),
+                month: today.slice(0, 7),
+                day: today,
+              },
+            }}
+            className={
+              selectedDay === today
+                ? 'border border-accent bg-accent px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.15em] text-accent-foreground'
+                : 'border border-border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.15em] text-muted transition-colors hover:border-accent hover:text-foreground'
+            }
+          >
+            {locale === 'en' ? 'Today' : 'Hoy'}
+          </Link>
+
+          <Link
+            href={{
+              pathname: '/events',
+              query: {
+                ...(cityFilter === 'all' ? {} : { city: cityFilter }),
+                month: weekendDay.slice(0, 7),
+                day: weekendDay,
+              },
+            }}
+            className={
+              selectedDay === weekendDay
+                ? 'border border-accent bg-accent px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.15em] text-accent-foreground'
+                : 'border border-border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.15em] text-muted transition-colors hover:border-accent hover:text-foreground'
+            }
+          >
+            {locale === 'en' ? 'Weekend' : 'Fin de semana'}
+          </Link>
+
+          <Link
+            href={{
+              pathname: '/events',
+              query: {
+                ...(cityFilter === 'all' ? {} : { city: cityFilter }),
+                month: currentMonth,
+              },
+            }}
+            className={
+              activeMonth === currentMonth
+                ? 'border border-accent bg-accent px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.15em] text-accent-foreground'
+                : 'border border-border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.15em] text-muted transition-colors hover:border-accent hover:text-foreground'
+            }
+          >
+            {locale === 'en' ? 'This month' : 'Este mes'}
+          </Link>
         </div>
       </Card>
 
@@ -261,11 +326,7 @@ export default async function EventsPage({
             </div>
 
             {selectedEvents.length > 0 ? (
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-                {selectedEvents.map((event) => (
-                  <EventFlyerCard key={event.id} event={event} locale={locale} />
-                ))}
-              </div>
+              <EventFlyerGallery events={selectedEvents} locale={locale} />
             ) : (
               <Card>
                 <CardTitle>{locale === 'en' ? 'No events this day' : 'No hay eventos ese dia'}</CardTitle>
@@ -278,32 +339,29 @@ export default async function EventsPage({
             )}
           </section>
 
-          <section className="space-y-4">
-            <h2 className="font-display text-[clamp(1.3rem,2.5vw,1.8rem)] font-black uppercase tracking-tight">
-              {locale === 'en' ? 'Upcoming month timeline' : 'Timeline mensual de eventos futuros'}
-            </h2>
-
-            {monthDayEntries.length > 0 ? (
-              <div className="space-y-5">
-                {monthDayEntries.map(([dayKey, dayEvents]) => (
-                  <div key={dayKey} className="space-y-2">
-                    <h3 className="font-display text-sm font-black uppercase tracking-[0.15em] text-muted">
-                      {dayKey} · {dayEvents.length} {locale === 'en' ? 'events' : 'eventos'}
-                    </h3>
-                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-                      {dayEvents.map((event) => (
-                        <EventFlyerCard key={`${dayKey}-${event.id}`} event={event} locale={locale} />
-                      ))}
+          {monthDayEntries.length > 0 ? (
+            <section className="space-y-3">
+              <details className="border border-border bg-surface">
+                <summary className="cursor-pointer list-none px-4 py-3">
+                  <span className="font-display text-sm font-black uppercase tracking-[0.15em]">
+                    {locale === 'en'
+                      ? `Open full month timeline (${monthDayEntries.length} days)`
+                      : `Abrir timeline completo del mes (${monthDayEntries.length} dias)`}
+                  </span>
+                </summary>
+                <div className="space-y-5 border-t border-border p-4">
+                  {monthDayEntries.map(([dayKey, dayEvents]) => (
+                    <div key={dayKey} className="space-y-2">
+                      <h3 className="font-display text-sm font-black uppercase tracking-[0.15em] text-muted">
+                        {dayKey} · {dayEvents.length} {locale === 'en' ? 'events' : 'eventos'}
+                      </h3>
+                      <EventFlyerGallery events={dayEvents} locale={locale} />
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <Card>
-                <CardTitle>{locale === 'en' ? 'No month events' : 'Sin eventos este mes'}</CardTitle>
-              </Card>
-            )}
-          </section>
+                  ))}
+                </div>
+              </details>
+            </section>
+          ) : null}
         </>
       ) : (
         <Card>
@@ -340,46 +398,6 @@ export default async function EventsPage({
       ) : null}
 
     </div>
-  );
-}
-
-function EventFlyerCard({ event, locale }: { event: RaEvent; locale: 'en' | 'es' }) {
-  return (
-    <article className="group relative overflow-hidden border border-border bg-surface">
-      <div className="relative min-h-[260px]">
-        {event.imageUrl ? (
-          <div
-            className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-[1.03]"
-            style={{ backgroundImage: `url("${event.imageUrl}")` }}
-          />
-        ) : (
-          <div className="absolute inset-0 bg-linear-to-br from-accent/35 via-accent-2/25 to-background" />
-        )}
-
-        <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/45 to-black/15" />
-
-        <div className="absolute bottom-0 left-0 right-0 p-3">
-          <p className="font-display text-[10px] font-bold uppercase tracking-[0.18em] text-accent">
-            {event.city === 'barcelona' ? 'Barcelona' : 'Madrid'}
-          </p>
-          <h3 className="mt-1 font-display text-lg font-black uppercase leading-tight tracking-tight text-white md:text-xl">
-            {event.title}
-          </h3>
-          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-white/85 md:text-sm">
-            <p>{event.venue}</p>
-            <p>{formatEventDateLabel(event.startDateIso, locale)}</p>
-          </div>
-          <a
-            href={event.sourceUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-3 inline-flex border border-white/30 bg-black/35 px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.15em] text-white transition-colors hover:border-accent hover:text-accent"
-          >
-            {locale === 'en' ? 'Open in RA' : 'Abrir en RA'}
-          </a>
-        </div>
-      </div>
-    </article>
   );
 }
 
@@ -468,6 +486,14 @@ function formatMonthChip(yyyyMm: string, locale: 'en' | 'es'): string {
 function addDays(yyyyMmDd: string, days: number): string {
   const date = new Date(`${yyyyMmDd}T00:00:00.000Z`);
   date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function nextWeekendStart(yyyyMmDd: string): string {
+  const date = new Date(`${yyyyMmDd}T00:00:00.000Z`);
+  const day = date.getUTCDay();
+  const daysToSaturday = (6 - day + 7) % 7;
+  date.setUTCDate(date.getUTCDate() + daysToSaturday);
   return date.toISOString().slice(0, 10);
 }
 
