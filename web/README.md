@@ -64,6 +64,10 @@ Route handlers under `src/app/api/events` provide a backend contract for partner
 - `POST /api/events/import/ra` manual RA URL import with dedupe by `sourceExternalId`
 - `POST /api/events/import/ra/sync` batch import endpoint intended for scheduled jobs
 
+RA import notes:
+- `POST /api/events/import/ra` attempts live JSON-LD extraction from the RA page (title/date/venue/city/organizer/lineup/price/genres), with fallback defaults for partial data.
+- Response includes `mappingCoverage` (`filledFields`, `totalFields`, `ratio`) to quantify auto-fill completeness for valid URLs.
+
 Current implementation uses an in-memory store seeded from `src/data/events-backend.seed.json` so frontend integration can proceed before persistent DB wiring.
 
 ## Deploy (Vercel)

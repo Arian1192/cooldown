@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { parseResidentAdvisorEvent, toDraftRaEvent } from "@/lib/events/ra";
+import {
+  measureRaAutofillCoverage,
+  parseResidentAdvisorEvent,
+  toDraftRaEvent,
+} from "@/lib/events/ra";
 import { createEvent, findEventBySourceExternalId } from "@/lib/events/store";
 import { parseRaSyncPayload } from "@/lib/events/validators";
 
@@ -23,7 +27,7 @@ export async function POST(request: Request) {
   const failed: unknown[] = [];
 
   for (const url of parsed.data.urls) {
-    const raEvent = parseResidentAdvisorEvent({
+    const raEvent = await parseResidentAdvisorEvent({
       url,
       organizer: parsed.data.organizer,
     });
@@ -41,7 +45,11 @@ export async function POST(request: Request) {
     }
 
     const created = createEvent(toDraftRaEvent(raEvent));
-    imported.push({ url, eventId: created.id });
+    imported.push({
+      url,
+      eventId: created.id,
+      mappingCoverage: measureRaAutofillCoverage(raEvent),
+    });
   }
 
   return NextResponse.json({

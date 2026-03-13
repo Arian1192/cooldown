@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { parseResidentAdvisorEvent, toDraftRaEvent } from "@/lib/events/ra";
+import {
+  measureRaAutofillCoverage,
+  parseResidentAdvisorEvent,
+  toDraftRaEvent,
+} from "@/lib/events/ra";
 import { createEvent, findEventBySourceExternalId } from "@/lib/events/store";
 import { parseRaImportPayload } from "@/lib/events/validators";
 
@@ -18,7 +22,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const raEvent = parseResidentAdvisorEvent(parsed.data);
+  const raEvent = await parseResidentAdvisorEvent(parsed.data);
 
   if (!raEvent) {
     return NextResponse.json(
@@ -40,12 +44,14 @@ export async function POST(request: Request) {
   }
 
   const created = createEvent(toDraftRaEvent(raEvent));
+  const coverage = measureRaAutofillCoverage(raEvent);
 
   return NextResponse.json(
     {
       message: "Resident Advisor event imported as draft",
       deduplicated: false,
       data: created,
+      mappingCoverage: coverage,
     },
     { status: 201 },
   );
