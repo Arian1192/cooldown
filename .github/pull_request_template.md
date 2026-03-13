@@ -1,33 +1,25 @@
-## Related issue
+## Summary
 
-- Paperclip issue:
-- Context / links:
+Describe the change in 2-5 lines.
 
 ## Scope
 
-- What changed:
-- Why:
-- Out of scope:
+- What was changed:
+- What was intentionally not changed:
 
 ## Verification
 
-- Commands run:
-- Result summary:
-- Manual checks:
+- Checks run:
+- Result:
 
-## PR Evidence Checklist (Required)
+## Risks
 
-- [ ] This PR is linked in the closing Paperclip issue comment
-- [ ] Closing comment includes verification summary (tests/checks)
-- [ ] Closing comment includes scope summary
+- Risk level:
+- Rollback plan:
 
-## Frontend checklist (if applicable)
+## Checklist
 
-- [ ] `npm run lint` passes in `web/`
-- [ ] `npm run typecheck` passes in `web/`
-- [ ] `npm run build` passes in `web/`
-- [ ] Accessibility checks completed (keyboard, labels, contrast)
-
-## Attachments
-
-- Screenshots / recordings / metrics:
+- [ ] PR body is complete (no placeholders left).
+- [ ] Verification section includes executed checks.
+- [ ] Scope section explains changed vs out-of-scope items.
+- [ ] If this closes a technical issue, closing comment will include PR link, verification summary, and scope summary.

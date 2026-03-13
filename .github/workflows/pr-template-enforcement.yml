@@ -1,0 +1,125 @@
+name: PR Template Enforcement
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  validate-pr-body:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate required PR template sections
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.pull_request?.body || '';
+
+            const requiredSections = [
+              'Summary',
+              'Scope',
+              'Verification',
+              'Risks',
+              'Checklist'
+            ];
+
+            const missingSections = requiredSections.filter((section) => {
+              const pattern = new RegExp(`^##\\s+${section}\\s*$`, 'mi');
+              return !pattern.test(body);
+            });
+
+            const requiredCheckedItems = [
+              'PR body is complete (no placeholders left).',
+              'Verification section includes executed checks.',
+              'Scope section explains changed vs out-of-scope items.',
+              'If this closes a technical issue, closing comment will include PR link, verification summary, and scope summary.'
+            ];
+
+            const checkedItems = [];
+            const checkboxRegex = /^- \[(x|X)\] (.+)$/gmi;
+            let match;
+            while ((match = checkboxRegex.exec(body)) !== null) {
+              checkedItems.push(match[2].trim());
+            }
+
+            const uncheckedRequired = requiredCheckedItems.filter((item) => !checkedItems.includes(item));
+
+            const lines = body.split('\n');
+
+            function sectionHasContent(startIdx) {
+              for (let i = startIdx + 1; i < lines.length; i += 1) {
+                const line = lines[i];
+
+                if (/^##\s+/.test(line)) {
+                  return false;
+                }
+
+                if (line.trim() === '') {
+                  continue;
+                }
+
+                if (/^\s*-\s+.+/.test(line)) {
+                  return true;
+                }
+
+                return true;
+              }
+
+              return false;
+            }
+
+            const placeholderChecks = [
+              {
+                name: 'summary placeholder',
+                invalid: lines.some((line) => line.trim().toLowerCase() === 'describe the change in 2-5 lines.')
+              },
+              {
+                name: 'scope placeholder',
+                invalid: lines.some((line, idx) => line.trim() === '- What was changed:' && !sectionHasContent(idx))
+              },
+              {
+                name: 'verification placeholder',
+                invalid: lines.some((line, idx) => line.trim() === '- Checks run:' && !sectionHasContent(idx))
+              },
+              {
+                name: 'result placeholder',
+                invalid: lines.some((line, idx) => line.trim() === '- Result:' && !sectionHasContent(idx))
+              },
+              {
+                name: 'risk placeholder',
+                invalid: lines.some((line, idx) => line.trim() === '- Risk level:' && !sectionHasContent(idx))
+              },
+              {
+                name: 'rollback placeholder',
+                invalid: lines.some((line, idx) => line.trim() === '- Rollback plan:' && !sectionHasContent(idx))
+              }
+            ];
+
+            const foundPlaceholders = placeholderChecks.filter((check) => check.invalid).map((check) => check.name);
+
+            const errors = [];
+
+            if (missingSections.length > 0) {
+              errors.push(`Missing required sections: ${missingSections.join(', ')}`);
+            }
+
+            if (uncheckedRequired.length > 0) {
+              errors.push(`Required checklist items not checked: ${uncheckedRequired.join(' | ')}`);
+            }
+
+            if (foundPlaceholders.length > 0) {
+              errors.push(`PR body still contains unfilled placeholder sections: ${foundPlaceholders.join(', ')}`);
+            }
+
+            if (!body.trim()) {
+              errors.push('PR description is empty.');
+            }
+
+            if (errors.length > 0) {
+              core.setFailed(`PR template validation failed. ${errors.join(' ')}`);
+            } else {
+              core.info('PR template validation passed.');
+            }

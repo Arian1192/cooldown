@@ -46,6 +46,13 @@ PR governance:
 - Conventional Commit format is required for commit subjects.
 - Pull requests use `.github/pull_request_template.md` with accessibility and performance budget checklists.
 
+Additional policy workflow: `.github/workflows/pr-template-enforcement.yml`
+- validates PR body completeness against `.github/pull_request_template.md`
+
+## Engineering process docs
+
+- Technical PR workflow and done-gate: `docs/engineering/pr-workflow.md`
+
 ## Internal linking conventions
 
 Route patterns (Sprint 1 templates):
