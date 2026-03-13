@@ -1,0 +1,54 @@
+{
+  "partners": [
+    {
+      "id": "partner_nitsa",
+      "name": "Nitsa Club",
+      "slug": "nitsa-club",
+      "contactEmail": "bookings@nitsa.example",
+      "raProfileUrl": "https://ra.co/clubs/1296",
+      "createdAt": "2026-03-01T12:00:00.000Z"
+    }
+  ],
+  "eventRequests": [
+    {
+      "id": "req_01",
+      "partnerId": "partner_nitsa",
+      "partnerName": "Nitsa Club",
+      "title": "Friday Warehouse Session",
+      "description": "Monthly warehouse format.",
+      "date": "2026-03-20T22:30:00.000Z",
+      "city": "Barcelona",
+      "venue": "Nitsa",
+      "genres": ["techno", "electro"],
+      "lineUp": ["Jane Void", "K-Lane"],
+      "eventType": "club_night",
+      "priceEur": 18,
+      "ticketUrl": "https://tickets.example/events/friday-warehouse",
+      "status": "pending_review",
+      "createdAt": "2026-03-10T09:00:00.000Z",
+      "updatedAt": "2026-03-10T09:00:00.000Z"
+    }
+  ],
+  "events": [
+    {
+      "id": "evt_native_01",
+      "title": "Cooldown Editorial Meetup",
+      "description": "In-house curation event.",
+      "date": "2026-03-18T19:00:00.000Z",
+      "city": "Barcelona",
+      "venue": "Sala Paral·lel",
+      "organizer": "Cooldown",
+      "genres": ["house"],
+      "lineUp": ["Resident Team"],
+      "eventType": "workshop",
+      "priceEur": 0,
+      "origin": "native",
+      "status": "published",
+      "source": {
+        "source": "native"
+      },
+      "createdAt": "2026-03-01T08:00:00.000Z",
+      "updatedAt": "2026-03-01T08:00:00.000Z"
+    }
+  ]
+}
