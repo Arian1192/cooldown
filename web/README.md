@@ -52,6 +52,20 @@ Content source flags:
 - `CONTENT_ENABLE_SEED_FALLBACK=true|false` to control development fallback when source is unavailable
 - Default behavior: `CONTENT_SOURCE=strapi` and `STRAPI_URL=https://cms-cooldown-roan.ariancoro.com` (weekly feed endpoint)
 
+## Events Backend API (COO-66)
+
+Route handlers under `src/app/api/events` provide a backend contract for partner-event intake, moderation, and RA imports.
+
+- `GET /api/events` list events with optional filters: `organizer`, `dateFrom`, `dateTo`, `genre`, `origin`, `status`
+- `GET /api/events/partners` list partner records
+- `GET /api/events/requests?status=pending_review|approved|rejected` list event requests
+- `POST /api/events/requests` submit partner event request payload
+- `PATCH /api/events/requests/:requestId/moderate` moderation action payload (`approve`, `reject`, `edit`)
+- `POST /api/events/import/ra` manual RA URL import with dedupe by `sourceExternalId`
+- `POST /api/events/import/ra/sync` batch import endpoint intended for scheduled jobs
+
+Current implementation uses an in-memory store seeded from `src/data/events-backend.seed.json` so frontend integration can proceed before persistent DB wiring.
+
 ## Deploy (Vercel)
 
 Vercel monorepo config:
