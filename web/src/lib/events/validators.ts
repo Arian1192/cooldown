@@ -29,6 +29,10 @@ function asStringArray(value: unknown): string[] | null {
   return cleaned.length > 0 ? cleaned : null;
 }
 
+function asBoolean(value: unknown): boolean | null {
+  return typeof value === "boolean" ? value : null;
+}
+
 export function parseEventRequestPayload(payload: unknown):
   | {
       ok: true;
@@ -47,6 +51,9 @@ export function parseEventRequestPayload(payload: unknown):
         priceEur?: number;
         ticketUrl?: string;
         sourceRaUrl?: string;
+        logoAssetUrl?: string;
+        artworkAssetUrl?: string;
+        rightsConfirmed: boolean;
       };
     }
   | { ok: false; errors: string[] } {
@@ -63,6 +70,9 @@ export function parseEventRequestPayload(payload: unknown):
   const genres = asStringArray(payload.genres);
   const lineUp = asStringArray(payload.lineUp);
   const eventType = asTrimmedString(payload.eventType);
+  const rightsConfirmed = asBoolean(payload.rightsConfirmed);
+  const logoAssetUrl = asTrimmedString(payload.logoAssetUrl);
+  const artworkAssetUrl = asTrimmedString(payload.artworkAssetUrl);
 
   const errors: string[] = [];
 
@@ -102,6 +112,18 @@ export function parseEventRequestPayload(payload: unknown):
     errors.push(`eventType must be one of: ${EVENT_TYPES.join(", ")}`);
   }
 
+  if (!logoAssetUrl) {
+    errors.push("logoAssetUrl is required");
+  }
+
+  if (!artworkAssetUrl) {
+    errors.push("artworkAssetUrl is required");
+  }
+
+  if (!rightsConfirmed) {
+    errors.push("rightsConfirmed must be true");
+  }
+
   if (errors.length > 0) {
     return { ok: false, errors };
   }
@@ -131,6 +153,9 @@ export function parseEventRequestPayload(payload: unknown):
       priceEur,
       ticketUrl,
       sourceRaUrl,
+      logoAssetUrl: logoAssetUrl ?? undefined,
+      artworkAssetUrl: artworkAssetUrl ?? undefined,
+      rightsConfirmed: rightsConfirmed as boolean,
     },
   };
 }

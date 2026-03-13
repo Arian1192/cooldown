@@ -5,6 +5,8 @@ import { createEvent, findEventBySourceExternalId } from "@/lib/events/store";
 import { parseRaImportPayload } from "@/lib/events/validators";
 
 export async function POST(request: Request) {
+  const requestUrl = new URL(request.url);
+  const preview = requestUrl.searchParams.get("preview") === "1";
   const payload = await request.json().catch(() => null);
   const parsed = parseRaImportPayload(payload);
 
@@ -27,6 +29,13 @@ export async function POST(request: Request) {
       },
       { status: 400 },
     );
+  }
+
+  if (preview) {
+    return NextResponse.json({
+      message: "Resident Advisor metadata parsed",
+      data: raEvent,
+    });
   }
 
   const existing = findEventBySourceExternalId(raEvent.sourceExternalId);

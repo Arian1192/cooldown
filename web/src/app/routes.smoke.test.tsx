@@ -51,4 +51,16 @@ describe('critical route smoke', () => {
     const view = await SearchPage({ searchParams: Promise.resolve({ q: 'weekly' }) });
     expect(isValidElement(view)).toBe(true);
   });
+
+  it('renders /events/submit', async () => {
+    const { default: SubmitEventPage } = await import('@/app/events/submit/page');
+    const view = await SubmitEventPage();
+    expect(isValidElement(view)).toBe(true);
+  });
+
+  it('renders /events/moderation', async () => {
+    const { default: EventsModerationPage } = await import('@/app/events/moderation/page');
+    const view = await EventsModerationPage();
+    expect(isValidElement(view)).toBe(true);
+  });
 });

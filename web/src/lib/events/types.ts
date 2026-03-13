@@ -57,6 +57,9 @@ export interface EventRequestRecord {
   priceEur?: number;
   ticketUrl?: string;
   sourceRaUrl?: string;
+  logoAssetUrl?: string;
+  artworkAssetUrl?: string;
+  rightsConfirmed?: boolean;
   status: EventRequestStatus;
   moderationNotes?: string;
   linkedEventId?: string;

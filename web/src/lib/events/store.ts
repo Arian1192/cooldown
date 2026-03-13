@@ -25,6 +25,9 @@ interface RequestInput {
   priceEur?: number;
   ticketUrl?: string;
   sourceRaUrl?: string;
+  logoAssetUrl?: string;
+  artworkAssetUrl?: string;
+  rightsConfirmed?: boolean;
 }
 
 interface EventInput {

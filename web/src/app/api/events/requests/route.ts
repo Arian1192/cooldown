@@ -49,6 +49,9 @@ export async function POST(request: Request) {
     priceEur: parsed.data.priceEur,
     ticketUrl: parsed.data.ticketUrl,
     sourceRaUrl: parsed.data.sourceRaUrl,
+    logoAssetUrl: parsed.data.logoAssetUrl,
+    artworkAssetUrl: parsed.data.artworkAssetUrl,
+    rightsConfirmed: parsed.data.rightsConfirmed,
   });
 
   return NextResponse.json(
