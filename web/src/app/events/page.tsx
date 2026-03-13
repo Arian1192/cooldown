@@ -287,6 +287,15 @@ export default async function EventsPage({
         caption="Agenda curada de club culture. Filtra por organizador, fecha o genero para ver rapidamente eventos confirmados, partner events e importaciones de RA."
       />
 
+      <div className="flex justify-end">
+        <Link
+          href="/events/moderation"
+          className="border border-border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.2em] text-muted transition-colors hover:border-accent hover:text-accent"
+        >
+          Internal moderation
+        </Link>
+      </div>
+
       <section className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <div className="relative overflow-hidden border border-border bg-surface p-5">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,hsl(var(--accent)/0.2),transparent_52%)]" />

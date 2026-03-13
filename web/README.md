@@ -66,6 +66,15 @@ Route handlers under `src/app/api/events` provide a backend contract for partner
 
 Current implementation uses an in-memory store seeded from `src/data/events-backend.seed.json` so frontend integration can proceed before persistent DB wiring.
 
+## Internal Moderation Backoffice (COO-68)
+
+- Route: `GET /events/moderation`
+- Purpose: operations UI for reviewing partner `event_requests` end-to-end.
+- Includes:
+  - queue filters by status, partner, and date range
+  - moderation actions (`approve`, `reject`, `edit`) via `/api/events/requests/:requestId/moderate`
+  - session-level audit feedback (who/when/action) and recoverable API error states
+
 ## Deploy (Vercel)
 
 Vercel monorepo config:
