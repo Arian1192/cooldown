@@ -148,18 +148,6 @@ const EVENTS: EventItem[] = [
   },
 ];
 
-const CITY_OPTIONS: { value: EventCity; label: string }[] = [
-  { value: 'barcelona', label: 'Barcelona' },
-  { value: 'madrid', label: 'Madrid' },
-];
-
-const FORMAT_OPTIONS: { value: EventFormat; label: string }[] = [
-  { value: 'club', label: 'Club' },
-  { value: 'listening', label: 'Listening' },
-  { value: 'talk', label: 'Talk' },
-  { value: 'gallery', label: 'Gallery' },
-];
-
 const ORGANIZER_OPTIONS = Array.from(new Set(EVENTS.map((event) => event.organizer))).map((organizer) => ({
   value: organizer,
   label: organizer,
@@ -179,16 +167,8 @@ const DATE_OPTIONS: { value: DateFilter; label: string }[] = [
   { value: 'april_2026', label: 'April 2026' },
 ];
 
-function buildHref(filters: {
-  city?: EventCity;
-  format?: EventFormat;
-  organizer?: string;
-  genre?: Genre;
-  date?: DateFilter;
-}) {
+function buildHref(filters: { organizer?: string; genre?: Genre; date?: DateFilter }) {
   const params = new URLSearchParams();
-  if (filters.city) params.set('city', filters.city);
-  if (filters.format) params.set('format', filters.format);
   if (filters.organizer) params.set('organizer', filters.organizer);
   if (filters.genre) params.set('genre', filters.genre);
   if (filters.date) params.set('date', filters.date);
@@ -282,19 +262,15 @@ function matchesDateFilter(dateIso: string, dateFilter: DateFilter | undefined) 
 export default async function EventsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ city?: string; format?: string; organizer?: string; genre?: string; date?: string }>;
+  searchParams: Promise<{ organizer?: string; genre?: string; date?: string }>;
 }) {
-  const { city, format, organizer, genre, date } = await searchParams;
+  const { organizer, genre, date } = await searchParams;
 
-  const cityFilter = CITY_OPTIONS.find((option) => option.value === city)?.value;
-  const formatFilter = FORMAT_OPTIONS.find((option) => option.value === format)?.value;
   const organizerFilter = ORGANIZER_OPTIONS.find((option) => option.value === organizer)?.value;
   const genreFilter = GENRE_OPTIONS.find((option) => option.value === genre)?.value;
   const dateFilter = DATE_OPTIONS.find((option) => option.value === date)?.value;
 
   const filtered = EVENTS.filter((item) => {
-    if (cityFilter && item.city !== cityFilter) return false;
-    if (formatFilter && item.format !== formatFilter) return false;
     if (organizerFilter && item.organizer !== organizerFilter) return false;
     if (genreFilter && item.genre !== genreFilter) return false;
     if (!matchesDateFilter(item.dateIso, dateFilter)) return false;
@@ -308,20 +284,19 @@ export default async function EventsPage({
     <div className="space-y-8">
       <PageHeader
         title="Events"
-        caption="Agenda curada de club culture en Barcelona y Madrid. Filtra por organizador, fecha o genero para escanear la semana y planificar con rapidez."
+        caption="Agenda curada de club culture. Filtra por organizador, fecha o genero para ver rapidamente eventos confirmados, partner events e importaciones de RA."
       />
 
-      <section className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+      <section className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <div className="relative overflow-hidden border border-border bg-surface p-5">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,hsl(var(--accent)/0.2),transparent_52%)]" />
           <p className="relative font-display text-[10px] font-bold uppercase tracking-[0.26em] text-accent">Signal Board</p>
-          <p className="relative mt-3 max-w-[56ch] text-sm leading-relaxed text-muted">
-            Seleccionamos formatos que funcionen tanto para descubrimiento musical como para comunidad local.
-            El calendario se actualiza semanalmente y muestra el origen de cada evento para mejorar la confianza.
+          <p className="relative mt-3 max-w-[54ch] text-sm leading-relaxed text-muted">
+            Vista simplificada para descubrir eventos por quien organiza, cuando sucede y que sonido propone.
           </p>
           <div className="relative mt-5 grid gap-2 sm:grid-cols-3">
             <div className="border border-border bg-background p-3">
-              <p className="font-display text-[10px] font-bold uppercase tracking-[0.22em] text-muted">This Week</p>
+              <p className="font-display text-[10px] font-bold uppercase tracking-[0.22em] text-muted">Visible</p>
               <p className="mt-2 font-display text-2xl font-black uppercase leading-none">{filtered.length}</p>
             </div>
             <div className="border border-border bg-background p-3">
@@ -329,7 +304,7 @@ export default async function EventsPage({
               <p className="mt-2 font-display text-2xl font-black uppercase leading-none">{availableCount}</p>
             </div>
             <div className="border border-border bg-background p-3">
-              <p className="font-display text-[10px] font-bold uppercase tracking-[0.22em] text-muted">Partners</p>
+              <p className="font-display text-[10px] font-bold uppercase tracking-[0.22em] text-muted">Featured</p>
               <p className="mt-2 font-display text-2xl font-black uppercase leading-none">{featuredPartners.length}</p>
             </div>
           </div>
@@ -338,9 +313,9 @@ export default async function EventsPage({
         <aside className="border border-border bg-surface p-5">
           <h2 className="font-display text-[12px] font-bold uppercase tracking-[0.2em] text-accent">How to read</h2>
           <ul className="mt-3 space-y-2 text-sm text-muted">
-            <li>1. Filtra por organizador para reducir el ruido.</li>
-            <li>2. Usa fecha y genero para encontrar energia compatible.</li>
-            <li>3. Prioriza origen y badge de disponibilidad.</li>
+            <li>1. Organizador: quien publica y responde el evento.</li>
+            <li>2. Fecha: usa Next 7 Days para plan semanal.</li>
+            <li>3. Origen: Verified, Partner o Imported from RA.</li>
           </ul>
         </aside>
       </section>
@@ -388,165 +363,92 @@ export default async function EventsPage({
           Filters
         </h2>
 
-        <div className="grid gap-3 lg:grid-cols-3">
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href={buildHref({ format: formatFilter, organizer: organizerFilter, genre: genreFilter, date: dateFilter })}
-              className="inline-flex items-center border border-border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.18em] transition-colors hover:border-accent hover:text-accent"
-            >
-              All Cities
-            </Link>
-            {CITY_OPTIONS.map((option) => {
-              const active = cityFilter === option.value;
-              return (
-                <Link
-                  key={option.value}
-                  href={buildHref({
-                    city: option.value,
-                    format: formatFilter,
-                    organizer: organizerFilter,
-                    genre: genreFilter,
-                    date: dateFilter,
-                  })}
-                  aria-pressed={active}
-                  className={`inline-flex items-center border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.18em] transition-colors ${
-                    active
-                      ? 'border-accent bg-accent text-accent-foreground'
-                      : 'border-border hover:border-accent hover:text-accent'
-                  }`}
-                >
-                  {option.label}
-                </Link>
-              );
-            })}
+        <div className="grid gap-4 lg:grid-cols-3">
+          <div className="space-y-2">
+            <p className="font-display text-[9px] font-bold uppercase tracking-[0.2em] text-muted">Organizer</p>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href={buildHref({ genre: genreFilter, date: dateFilter })}
+                className="inline-flex items-center border border-border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.18em] transition-colors hover:border-accent hover:text-accent"
+              >
+                All
+              </Link>
+              {ORGANIZER_OPTIONS.map((option) => {
+                const active = organizerFilter === option.value;
+                return (
+                  <Link
+                    key={option.value}
+                    href={buildHref({ organizer: option.value, genre: genreFilter, date: dateFilter })}
+                    aria-pressed={active}
+                    className={`inline-flex items-center border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.18em] transition-colors ${
+                      active
+                        ? 'border-accent bg-accent text-accent-foreground'
+                        : 'border-border hover:border-accent hover:text-accent'
+                    }`}
+                  >
+                    {option.label}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href={buildHref({ city: cityFilter, organizer: organizerFilter, genre: genreFilter, date: dateFilter })}
-              className="inline-flex items-center border border-border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.18em] transition-colors hover:border-accent hover:text-accent"
-            >
-              All Formats
-            </Link>
-            {FORMAT_OPTIONS.map((option) => {
-              const active = formatFilter === option.value;
-              return (
-                <Link
-                  key={option.value}
-                  href={buildHref({
-                    city: cityFilter,
-                    format: option.value,
-                    organizer: organizerFilter,
-                    genre: genreFilter,
-                    date: dateFilter,
-                  })}
-                  aria-pressed={active}
-                  className={`inline-flex items-center border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.18em] transition-colors ${
-                    active
-                      ? 'border-accent bg-accent text-accent-foreground'
-                      : 'border-border hover:border-accent hover:text-accent'
-                  }`}
-                >
-                  {option.label}
-                </Link>
-              );
-            })}
+          <div className="space-y-2">
+            <p className="font-display text-[9px] font-bold uppercase tracking-[0.2em] text-muted">Genre</p>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href={buildHref({ organizer: organizerFilter, date: dateFilter })}
+                className="inline-flex items-center border border-border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.18em] transition-colors hover:border-accent hover:text-accent"
+              >
+                All
+              </Link>
+              {GENRE_OPTIONS.map((option) => {
+                const active = genreFilter === option.value;
+                return (
+                  <Link
+                    key={option.value}
+                    href={buildHref({ organizer: organizerFilter, genre: option.value, date: dateFilter })}
+                    aria-pressed={active}
+                    className={`inline-flex items-center border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.18em] transition-colors ${
+                      active
+                        ? 'border-accent bg-accent text-accent-foreground'
+                        : 'border-border hover:border-accent hover:text-accent'
+                    }`}
+                  >
+                    {option.label}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href={buildHref({ city: cityFilter, format: formatFilter, genre: genreFilter, date: dateFilter })}
-              className="inline-flex items-center border border-border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.18em] transition-colors hover:border-accent hover:text-accent"
-            >
-              All Organizers
-            </Link>
-            {ORGANIZER_OPTIONS.map((option) => {
-              const active = organizerFilter === option.value;
-              return (
-                <Link
-                  key={option.value}
-                  href={buildHref({
-                    city: cityFilter,
-                    format: formatFilter,
-                    organizer: option.value,
-                    genre: genreFilter,
-                    date: dateFilter,
-                  })}
-                  aria-pressed={active}
-                  className={`inline-flex items-center border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.18em] transition-colors ${
-                    active
-                      ? 'border-accent bg-accent text-accent-foreground'
-                      : 'border-border hover:border-accent hover:text-accent'
-                  }`}
-                >
-                  {option.label}
-                </Link>
-              );
-            })}
-          </div>
-
-          <div className="flex flex-wrap gap-2 lg:col-span-2">
-            <Link
-              href={buildHref({ city: cityFilter, format: formatFilter, organizer: organizerFilter, date: dateFilter })}
-              className="inline-flex items-center border border-border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.18em] transition-colors hover:border-accent hover:text-accent"
-            >
-              All Genres
-            </Link>
-            {GENRE_OPTIONS.map((option) => {
-              const active = genreFilter === option.value;
-              return (
-                <Link
-                  key={option.value}
-                  href={buildHref({
-                    city: cityFilter,
-                    format: formatFilter,
-                    organizer: organizerFilter,
-                    genre: option.value,
-                    date: dateFilter,
-                  })}
-                  aria-pressed={active}
-                  className={`inline-flex items-center border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.18em] transition-colors ${
-                    active
-                      ? 'border-accent bg-accent text-accent-foreground'
-                      : 'border-border hover:border-accent hover:text-accent'
-                  }`}
-                >
-                  {option.label}
-                </Link>
-              );
-            })}
-          </div>
-
-          <div className="flex flex-wrap gap-2 lg:col-span-1">
-            <Link
-              href={buildHref({ city: cityFilter, format: formatFilter, organizer: organizerFilter, genre: genreFilter })}
-              className="inline-flex items-center border border-border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.18em] transition-colors hover:border-accent hover:text-accent"
-            >
-              All Dates
-            </Link>
-            {DATE_OPTIONS.map((option) => {
-              const active = dateFilter === option.value;
-              return (
-                <Link
-                  key={option.value}
-                  href={buildHref({
-                    city: cityFilter,
-                    format: formatFilter,
-                    organizer: organizerFilter,
-                    genre: genreFilter,
-                    date: option.value,
-                  })}
-                  aria-pressed={active}
-                  className={`inline-flex items-center border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.18em] transition-colors ${
-                    active
-                      ? 'border-accent bg-accent text-accent-foreground'
-                      : 'border-border hover:border-accent hover:text-accent'
-                  }`}
-                >
-                  {option.label}
-                </Link>
-              );
-            })}
+          <div className="space-y-2">
+            <p className="font-display text-[9px] font-bold uppercase tracking-[0.2em] text-muted">Date</p>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href={buildHref({ organizer: organizerFilter, genre: genreFilter })}
+                className="inline-flex items-center border border-border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.18em] transition-colors hover:border-accent hover:text-accent"
+              >
+                All
+              </Link>
+              {DATE_OPTIONS.map((option) => {
+                const active = dateFilter === option.value;
+                return (
+                  <Link
+                    key={option.value}
+                    href={buildHref({ organizer: organizerFilter, genre: genreFilter, date: option.value })}
+                    aria-pressed={active}
+                    className={`inline-flex items-center border px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-[0.18em] transition-colors ${
+                      active
+                        ? 'border-accent bg-accent text-accent-foreground'
+                        : 'border-border hover:border-accent hover:text-accent'
+                    }`}
+                  >
+                    {option.label}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         </div>
       </section>
@@ -584,12 +486,14 @@ export default async function EventsPage({
                   <dd className="mt-1">{event.organizer}</dd>
                 </div>
                 <div>
-                  <dt className="font-display text-[9px] font-bold uppercase tracking-[0.2em] text-foreground">City</dt>
-                  <dd className="mt-1">{cityLabel(event.city)}</dd>
+                  <dt className="font-display text-[9px] font-bold uppercase tracking-[0.2em] text-foreground">Where</dt>
+                  <dd className="mt-1">
+                    {event.venue} · {cityLabel(event.city)}
+                  </dd>
                 </div>
                 <div>
-                  <dt className="font-display text-[9px] font-bold uppercase tracking-[0.2em] text-foreground">Venue</dt>
-                  <dd className="mt-1">{event.venue}</dd>
+                  <dt className="font-display text-[9px] font-bold uppercase tracking-[0.2em] text-foreground">Format</dt>
+                  <dd className="mt-1">{formatLabel(event.format)}</dd>
                 </div>
               </dl>
 
@@ -600,15 +504,9 @@ export default async function EventsPage({
                   {originLabel(event.origin)}
                 </span>
                 <span className="inline-flex items-center border border-border bg-background px-2 py-1 font-display text-[9px] font-bold uppercase tracking-[0.16em] text-muted">
-                  {formatLabel(event.format)}
-                </span>
-                <span className="inline-flex items-center border border-border bg-background px-2 py-1 font-display text-[9px] font-bold uppercase tracking-[0.16em] text-muted">
                   {event.genre}
                 </span>
-                <span className="inline-flex items-center border border-border bg-background px-2 py-1 font-display text-[9px] font-bold uppercase tracking-[0.16em] text-muted">
-                  {event.district}
-                </span>
-                {event.tags.map((tag) => (
+                {event.tags.slice(0, 1).map((tag) => (
                   <span
                     key={tag}
                     className="inline-flex items-center border border-border/70 px-2 py-1 font-display text-[9px] font-bold uppercase tracking-[0.16em] text-muted"
