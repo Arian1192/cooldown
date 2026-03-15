@@ -10,12 +10,7 @@ export const env = {
   NEXT_PUBLIC_UMAMI_WEBSITE_ID: process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID,
 
   // Server-only. Used for canonical URLs, sitemap, RSS.
-  // On Vercel, `VERCEL_URL` is automatically available (hostname without protocol).
-  SITE_URL:
-    process.env.SITE_URL ??
-    (process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : 'http://localhost:3000'),
+  SITE_URL: process.env.SITE_URL ?? 'http://localhost:3000',
 
   // Server-only CMS endpoint. `CMS_BASE_URL` is kept as a legacy alias.
   STRAPI_URL:

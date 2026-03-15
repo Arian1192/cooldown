@@ -36,7 +36,7 @@ Quality references:
 Current keys used by web:
 
 - `NEXT_PUBLIC_SITE_NAME` (optional, default `Music + Urban`)
-- `SITE_URL` (optional in Vercel, recommended in production for canonical URLs)
+- `SITE_URL` (recommended in production for canonical URLs)
 - `STRAPI_URL` (recommended; CMS API base URL)
 - `CMS_BASE_URL` (legacy alias for `STRAPI_URL`, still accepted)
 - `NEXT_PUBLIC_UMAMI_SCRIPT_URL` (optional analytics)
@@ -66,9 +66,10 @@ Route handlers under `src/app/api/events` provide a backend contract for partner
 
 Current implementation uses an in-memory store seeded from `src/data/events-backend.seed.json` so frontend integration can proceed before persistent DB wiring.
 
-## Deploy (Vercel)
+## Deploy (Coolify)
 
-Vercel monorepo config:
-- Root Directory: `web`
-- Build: `next build`
-- Output: `.next`
+Deploy from repository root using the project Dockerfile:
+
+- Build Pack: `Dockerfile`
+- Dockerfile Location: `./Dockerfile`
+- Port: `3000`

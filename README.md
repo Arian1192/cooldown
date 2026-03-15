@@ -69,19 +69,6 @@ Conventions:
 - Use absolute internal links (`/path`) via `next/link`.
 - Prefer `slug` in URLs for content; IDs stay internal.
 
-## Deployment (recommended: Vercel)
-
-Vercel supports monorepos. Configure:
-- **Root Directory**: `web`
-- Build Command: `next build` (default)
-- Output: `.next` (default)
-
-This will automatically create:
-- **Preview deployments** for PRs
-- **Production deployments** on `master`
-
-If we standardize on a different provider (Netlify / Cloudflare Pages), update this section and add provider-specific config.
-
 ## Deployment (Coolify)
 
 This repo is now ready for root-level Docker deployment in Coolify.
