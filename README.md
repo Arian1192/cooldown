@@ -81,3 +81,27 @@ This will automatically create:
 - **Production deployments** on `master`
 
 If we standardize on a different provider (Netlify / Cloudflare Pages), update this section and add provider-specific config.
+
+## Deployment (Coolify)
+
+This repo is now ready for root-level Docker deployment in Coolify.
+
+- Build Pack: `Dockerfile`
+- Dockerfile Location: `./Dockerfile`
+- Port: `3000`
+- Healthcheck Path: `/`
+
+Required runtime environment variables:
+
+- `SITE_URL` (public frontend URL, e.g. `https://cooldown.ariancoro.com`)
+- `STRAPI_URL` (public CMS URL, e.g. `https://cms.cooldown.ariancoro.com`)
+
+Optional analytics variables:
+
+- `NEXT_PUBLIC_UMAMI_SCRIPT_URL`
+- `NEXT_PUBLIC_UMAMI_WEBSITE_ID`
+
+Notes for Coolify:
+
+- No monorepo subdirectory config is required; Docker builds from repository root.
+- The Docker image runs as a non-root user and starts with `node server.js`.

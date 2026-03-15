@@ -1,0 +1,13 @@
+.git
+.github
+docs
+node_modules
+web/node_modules
+web/.next
+web/coverage
+web/.turbo
+web/.vercel
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
