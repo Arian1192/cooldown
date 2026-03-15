@@ -18,6 +18,7 @@ import type { ContentItem } from '@/lib/content';
 import { type Locale } from '@/lib/i18n';
 
 const DISCOVER_PREVIEW_EVENT = 'discover-preview-activate';
+const COVER_PLACEHOLDER_SRC = '/placeholders/urban-cover.svg';
 
 // ── Small helpers ──────────────────────────────────────────────────────────────
 
@@ -60,6 +61,7 @@ export function WeeklyDiscoverCard({
   locale: Locale;
 }) {
   const [embedReady, setEmbedReady] = useState(false);
+  const [coverSrc, setCoverSrc] = useState(item.coverImageSrc);
 
   useEffect(() => {
     const onPreviewActivate = (event: Event) => {
@@ -74,6 +76,10 @@ export function WeeklyDiscoverCard({
       window.removeEventListener(DISCOVER_PREVIEW_EVENT, onPreviewActivate);
     };
   }, [item.slug]);
+
+  useEffect(() => {
+    setCoverSrc(item.coverImageSrc);
+  }, [item.coverImageSrc]);
 
   const activatePreview = () => {
     window.dispatchEvent(
@@ -98,11 +104,16 @@ export function WeeklyDiscoverCard({
       {/* ── Image + overlay ─────────────────────────────────────────────── */}
       <div className="relative aspect-16/10 overflow-hidden bg-foreground/5">
         <Image
-          src={item.coverImageSrc}
+          src={coverSrc}
           alt={item.coverImageAlt}
           width={1200}
           height={750}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+          onError={() => {
+            if (coverSrc !== COVER_PLACEHOLDER_SRC) {
+              setCoverSrc(COVER_PLACEHOLDER_SRC);
+            }
+          }}
         />
 
         {/* Gradient */}
