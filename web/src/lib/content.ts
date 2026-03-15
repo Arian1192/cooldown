@@ -267,7 +267,7 @@ const strapiRepository: ContentRepository = {
     const strapiUrl = (
       process.env.STRAPI_URL ??
       process.env.CMS_BASE_URL ??
-      'https://cms-cooldown-roan.ariancoro.com'
+      'https://cms-cooldown.ariancoro.com'
     ).replace(/\/$/, '');
 
     const response = await fetch(`${strapiUrl}/api/weekly-discover-feed?locale=${locale}`, {

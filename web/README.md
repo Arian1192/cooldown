@@ -50,7 +50,7 @@ Content source flags:
 - `CONTENT_SOURCE=versioned-json|remote-json|strapi`
 - `CONTENT_JSON_URL` required for `remote-json`
 - `CONTENT_ENABLE_SEED_FALLBACK=true|false` to control development fallback when source is unavailable
-- Default behavior: `CONTENT_SOURCE=strapi` and `STRAPI_URL=https://cms-cooldown-roan.ariancoro.com` (weekly feed endpoint)
+- Default behavior: `CONTENT_SOURCE=strapi` and `STRAPI_URL=https://cms-cooldown.ariancoro.com` (weekly feed endpoint)
 
 ## Events Backend API (COO-66)
 
