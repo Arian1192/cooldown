@@ -61,7 +61,7 @@ export function WeeklyDiscoverCard({
   locale: Locale;
 }) {
   const [embedReady, setEmbedReady] = useState(false);
-  const [coverSrc, setCoverSrc] = useState(item.coverImageSrc);
+  const [coverFailed, setCoverFailed] = useState(false);
 
   useEffect(() => {
     const onPreviewActivate = (event: Event) => {
@@ -76,10 +76,6 @@ export function WeeklyDiscoverCard({
       window.removeEventListener(DISCOVER_PREVIEW_EVENT, onPreviewActivate);
     };
   }, [item.slug]);
-
-  useEffect(() => {
-    setCoverSrc(item.coverImageSrc);
-  }, [item.coverImageSrc]);
 
   const activatePreview = () => {
     window.dispatchEvent(
@@ -104,14 +100,14 @@ export function WeeklyDiscoverCard({
       {/* ── Image + overlay ─────────────────────────────────────────────── */}
       <div className="relative aspect-16/10 overflow-hidden bg-foreground/5">
         <Image
-          src={coverSrc}
+          src={coverFailed ? COVER_PLACEHOLDER_SRC : item.coverImageSrc}
           alt={item.coverImageAlt}
           width={1200}
           height={750}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
           onError={() => {
-            if (coverSrc !== COVER_PLACEHOLDER_SRC) {
-              setCoverSrc(COVER_PLACEHOLDER_SRC);
+            if (!coverFailed) {
+              setCoverFailed(true);
             }
           }}
         />
