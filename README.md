@@ -92,6 +92,7 @@ Notes for Coolify:
 
 - No monorepo subdirectory config is required; Docker builds from repository root.
 - The Docker image runs as a non-root user and starts with `node server.js`.
+- Vercel git auto-deploys are explicitly disabled in `vercel.json` (`git.deploymentEnabled=false`).
 
 ### Deploy Automation (GitHub Actions -> Coolify)
 
