@@ -2,7 +2,7 @@ name: PR Template Enforcement
 
 on:
   pull_request:
-    types: [edited, synchronize, reopened, ready_for_review]
+    types: [edited, ready_for_review]
 
 permissions:
   contents: read
