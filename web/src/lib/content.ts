@@ -59,6 +59,7 @@ const TAGS_BY_TYPE: Record<ContentType, string[]> = {
   interviews: ['artist', 'promoter', 'crew', 'scene'],
   reviews: ['album', 'ep', 'live', 'label'],
 };
+const COVER_PLACEHOLDER_SRC = '/placeholders/urban-cover.svg';
 
 function groupByType(items: ContentItem[]): Record<ContentType, ContentItem[]> {
   const grouped: Record<ContentType, ContentItem[]> = {
@@ -79,6 +80,14 @@ function groupByType(items: ContentItem[]): Record<ContentType, ContentItem[]> {
   return grouped;
 }
 
+function normalizeCoverImageSrc(input: unknown): string {
+  if (typeof input !== 'string') return COVER_PLACEHOLDER_SRC;
+  const src = input.trim();
+  if (!src) return COVER_PLACEHOLDER_SRC;
+  if (src.startsWith('//')) return `https:${src}`;
+  return src;
+}
+
 function normalizeItem(input: Partial<ContentItem>): ContentItem | null {
   if (!input.type || !CONTENT_TYPES.includes(input.type)) return null;
   if (!input.slug || !input.title || !input.excerpt || !input.date) return null;
@@ -94,7 +103,7 @@ function normalizeItem(input: Partial<ContentItem>): ContentItem | null {
     title: input.title,
     excerpt: input.excerpt,
     date: input.date,
-    coverImageSrc: input.coverImageSrc ?? '/placeholders/urban-cover.svg',
+    coverImageSrc: normalizeCoverImageSrc(input.coverImageSrc),
     coverImageAlt: input.coverImageAlt ?? input.title,
     episode: input.episode,
     trackArtist: input.trackArtist,
@@ -267,7 +276,7 @@ const strapiRepository: ContentRepository = {
     const strapiUrl = (
       process.env.STRAPI_URL ??
       process.env.CMS_BASE_URL ??
-      'https://cms-cooldown-roan.ariancoro.com'
+      'https://cms-cooldown.ariancoro.com'
     ).replace(/\/$/, '');
 
     const response = await fetch(`${strapiUrl}/api/weekly-discover-feed?locale=${locale}`, {

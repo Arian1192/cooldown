@@ -18,6 +18,7 @@ import type { ContentItem } from '@/lib/content';
 import { type Locale } from '@/lib/i18n';
 
 const DISCOVER_PREVIEW_EVENT = 'discover-preview-activate';
+const COVER_PLACEHOLDER_SRC = '/placeholders/urban-cover.svg';
 
 // ── Small helpers ──────────────────────────────────────────────────────────────
 
@@ -60,6 +61,7 @@ export function WeeklyDiscoverCard({
   locale: Locale;
 }) {
   const [embedReady, setEmbedReady] = useState(false);
+  const [coverFailed, setCoverFailed] = useState(false);
 
   useEffect(() => {
     const onPreviewActivate = (event: Event) => {
@@ -98,11 +100,16 @@ export function WeeklyDiscoverCard({
       {/* ── Image + overlay ─────────────────────────────────────────────── */}
       <div className="relative aspect-16/10 overflow-hidden bg-foreground/5">
         <Image
-          src={item.coverImageSrc}
+          src={coverFailed ? COVER_PLACEHOLDER_SRC : item.coverImageSrc}
           alt={item.coverImageAlt}
           width={1200}
           height={750}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+          onError={() => {
+            if (!coverFailed) {
+              setCoverFailed(true);
+            }
+          }}
         />
 
         {/* Gradient */}

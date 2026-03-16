@@ -92,3 +92,16 @@ Notes for Coolify:
 
 - No monorepo subdirectory config is required; Docker builds from repository root.
 - The Docker image runs as a non-root user and starts with `node server.js`.
+- Vercel git auto-deploys are explicitly disabled in `vercel.json` (`git.deploymentEnabled=false`).
+
+### Deploy Automation (GitHub Actions -> Coolify)
+
+Workflow: `.github/workflows/deploy-coolify.yml`
+
+- Auto deploy trigger: after `CI` succeeds on `push` to `master`.
+- Manual deploy trigger: GitHub Actions `workflow_dispatch`.
+
+Required GitHub repository secrets:
+
+- `COOLIFY_DEPLOY_WEBHOOK` (required): Coolify deploy webhook URL.
+- `COOLIFY_DEPLOY_TOKEN` (optional): bearer token added as `Authorization: Bearer <token>`.

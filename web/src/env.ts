@@ -16,7 +16,7 @@ export const env = {
   STRAPI_URL:
     process.env.STRAPI_URL ??
     process.env.CMS_BASE_URL ??
-    'https://cms-cooldown-roan.ariancoro.com',
+    'https://cms-cooldown.ariancoro.com',
 
   // Server-only content source selector (`versioned-json` | `remote-json` | `strapi`)
   CONTENT_SOURCE: process.env.CONTENT_SOURCE ?? 'strapi',

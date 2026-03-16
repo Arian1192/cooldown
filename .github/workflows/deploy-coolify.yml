@@ -1,0 +1,39 @@
+name: Deploy Coolify
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+jobs:
+  deploy:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_branch == 'master'
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Coolify deployment webhook
+        env:
+          COOLIFY_DEPLOY_WEBHOOK: ${{ secrets.COOLIFY_DEPLOY_WEBHOOK }}
+          COOLIFY_DEPLOY_TOKEN: ${{ secrets.COOLIFY_DEPLOY_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${COOLIFY_DEPLOY_WEBHOOK:-}" ]; then
+            echo "Missing required secret: COOLIFY_DEPLOY_WEBHOOK"
+            exit 1
+          fi
+
+          AUTH_HEADER=()
+          if [ -n "${COOLIFY_DEPLOY_TOKEN:-}" ]; then
+            AUTH_HEADER=(-H "Authorization: Bearer ${COOLIFY_DEPLOY_TOKEN}")
+          fi
+
+          curl --fail --silent --show-error -X POST \
+            -H "Content-Type: application/json" \
+            "${AUTH_HEADER[@]}" \
+            "${COOLIFY_DEPLOY_WEBHOOK}"
