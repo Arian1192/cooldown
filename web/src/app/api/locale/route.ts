@@ -9,9 +9,12 @@ import {
 export function GET(request: NextRequest) {
   const locale = resolveLocale(request.nextUrl.searchParams.get('locale'));
   const redirect = request.nextUrl.searchParams.get('redirect') ?? '/';
-  const redirectPath = redirect.startsWith('/') ? redirect : '/';
-
-  const response = NextResponse.redirect(new URL(redirectPath, request.url));
+  const redirectPath =
+    redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/';
+  const response = new NextResponse(null, {
+    status: 307,
+    headers: { Location: redirectPath },
+  });
 
   response.cookies.set({
     name: LOCALE_COOKIE,
