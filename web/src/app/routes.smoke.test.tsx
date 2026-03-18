@@ -29,31 +29,31 @@ vi.mock('@/lib/content', async () => {
 
 describe('critical route smoke', () => {
   it('renders /', async () => {
-    const { default: HomePage } = await import('@/app/page');
+    const { default: HomePage } = await import('@/app/(site)/page');
     const view = await HomePage({ searchParams: Promise.resolve({}) });
     expect(isValidElement(view)).toBe(true);
   });
 
   it('renders /discover', async () => {
-    const { default: DiscoverPage } = await import('@/app/discover/page');
+    const { default: DiscoverPage } = await import('@/app/(site)/discover/page');
     const view = await DiscoverPage({ searchParams: Promise.resolve({}) });
     expect(isValidElement(view)).toBe(true);
   });
 
   it('renders /events', async () => {
-    const { default: EventsPage } = await import('@/app/events/page');
+    const { default: EventsPage } = await import('@/app/(site)/events/page');
     const view = await EventsPage({ searchParams: Promise.resolve({}) });
     expect(isValidElement(view)).toBe(true);
   });
 
   it('renders /search', async () => {
-    const { default: SearchPage } = await import('@/app/search/page');
+    const { default: SearchPage } = await import('@/app/(site)/search/page');
     const view = await SearchPage({ searchParams: Promise.resolve({ q: 'weekly' }) });
     expect(isValidElement(view)).toBe(true);
   });
 
   it('exports /events/submit page component', async () => {
-    const { default: EventSubmitPage } = await import('@/app/events/submit/page');
+    const { default: EventSubmitPage } = await import('@/app/(site)/events/submit/page');
     expect(typeof EventSubmitPage).toBe('function');
   });
 });
