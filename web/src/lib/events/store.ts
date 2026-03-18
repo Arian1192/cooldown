@@ -491,6 +491,31 @@ export function listEvents(filters?: {
   });
 }
 
+export function updateEvent(
+  eventId: string,
+  update: Partial<Pick<EventRecord, "status" | "title" | "date">>,
+): EventRecord | undefined {
+  ensureSeeded();
+  const db = getDb();
+  const existing = db.select().from(eventsTable).where(eq(eventsTable.id, eventId)).get();
+
+  if (!existing) {
+    return undefined;
+  }
+
+  const now = nowIso();
+  const patch: Partial<typeof eventsTable.$inferInsert> = { updatedAt: now };
+
+  if (update.status !== undefined) patch.status = update.status;
+  if (update.title !== undefined) patch.title = update.title;
+  if (update.date !== undefined) patch.date = update.date;
+
+  db.update(eventsTable).set(patch).where(eq(eventsTable.id, eventId)).run();
+
+  const updated = db.select().from(eventsTable).where(eq(eventsTable.id, eventId)).get();
+  return updated ? rowToEvent(updated) : undefined;
+}
+
 export function findEventBySourceExternalId(sourceExternalId: string): EventRecord | undefined {
   ensureSeeded();
   const normalized = sourceExternalId.trim().toLowerCase();
