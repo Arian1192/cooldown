@@ -167,6 +167,7 @@ function rowToPartner(row: PartnerRow): PartnerRecord {
     slug: row.slug,
     contactEmail: row.contactEmail,
     raProfileUrl: row.raProfileUrl ?? undefined,
+    description: row.description ?? undefined,
     createdAt: row.createdAt,
   };
 }
@@ -228,7 +229,10 @@ export function listPartners(): PartnerRecord[] {
 export function ensurePartner(input: {
   partnerId?: string;
   partnerName: string;
+  slug?: string;
   contactEmail: string;
+  raProfileUrl?: string;
+  description?: string;
 }): PartnerRecord {
   ensureSeeded();
   const db = getDb();
@@ -245,11 +249,12 @@ export function ensurePartner(input: {
     }
   }
 
-  const slug = input.partnerName
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
+  const slug = (input.slug?.trim() ||
+    input.partnerName
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, ""));
 
   const existingBySlug = db
     .select()
@@ -266,6 +271,8 @@ export function ensurePartner(input: {
     name: input.partnerName,
     slug,
     contactEmail: input.contactEmail,
+    raProfileUrl: input.raProfileUrl,
+    description: input.description,
     createdAt: nowIso(),
   };
 
@@ -275,7 +282,8 @@ export function ensurePartner(input: {
       name: created.name,
       slug: created.slug,
       contactEmail: created.contactEmail,
-      raProfileUrl: null,
+      raProfileUrl: created.raProfileUrl ?? null,
+      description: created.description ?? null,
       createdAt: created.createdAt,
     })
     .run();

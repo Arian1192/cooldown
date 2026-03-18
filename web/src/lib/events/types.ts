@@ -39,6 +39,7 @@ export interface PartnerRecord {
   slug: string;
   contactEmail: string;
   raProfileUrl?: string;
+  description?: string;
   createdAt: string;
 }
 

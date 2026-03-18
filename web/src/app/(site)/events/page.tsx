@@ -538,12 +538,18 @@ export default async function EventsPage({
         <p className="relative mt-2 max-w-[60ch] text-sm text-muted">
           Clubs, promotoras y colectivos pueden enviar sus propuestas para que aparezcan en la agenda de Cooldown.
         </p>
-        <div className="relative mt-4">
+        <div className="relative mt-4 flex flex-wrap gap-3">
           <Link
             href="/events/submit"
             className="inline-flex items-center bg-accent px-5 py-2.5 font-display text-[10px] font-bold uppercase tracking-[0.2em] text-accent-foreground transition-opacity hover:opacity-90"
           >
             Submit Event →
+          </Link>
+          <Link
+            href="/partners/join"
+            className="inline-flex items-center border border-border px-5 py-2.5 font-display text-[10px] font-bold uppercase tracking-[0.2em] transition-colors hover:border-accent hover:text-accent"
+          >
+            Hazte Partner →
           </Link>
         </div>
       </section>

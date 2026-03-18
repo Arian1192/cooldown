@@ -510,6 +510,16 @@ export default function EventSubmitPage() {
             <span className="font-semibold text-foreground">Pending Review</span> hasta su revisión.
           </p>
         </div>
+
+        <p className="text-xs text-muted">
+          ¿Primera vez?{' '}
+          <Link
+            href="/partners/join"
+            className="font-semibold text-foreground underline-offset-2 hover:underline"
+          >
+            Regístrate primero como partner →
+          </Link>
+        </p>
       </form>
     </div>
   );

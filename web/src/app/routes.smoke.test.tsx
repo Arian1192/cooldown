@@ -56,4 +56,9 @@ describe('critical route smoke', () => {
     const { default: EventSubmitPage } = await import('@/app/(site)/events/submit/page');
     expect(typeof EventSubmitPage).toBe('function');
   });
+
+  it('exports /partners/join page component', async () => {
+    const { default: PartnersJoinPage } = await import('@/app/(site)/partners/join/page');
+    expect(typeof PartnersJoinPage).toBe('function');
+  });
 });

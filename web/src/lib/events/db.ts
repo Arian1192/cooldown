@@ -11,6 +11,7 @@ export const partnersTable = sqliteTable("partners", {
   slug: text("slug").notNull().unique(),
   contactEmail: text("contact_email").notNull(),
   raProfileUrl: text("ra_profile_url"),
+  description: text("description"),
   createdAt: text("created_at").notNull(),
 });
 
@@ -91,6 +92,7 @@ function initSchema(sqlite: Database.Database): void {
       slug TEXT NOT NULL UNIQUE,
       contact_email TEXT NOT NULL,
       ra_profile_url TEXT,
+      description TEXT,
       created_at TEXT NOT NULL
     );
 
@@ -136,6 +138,9 @@ function initSchema(sqlite: Database.Database): void {
       updated_at TEXT NOT NULL
     );
   `);
+
+  // Migrations for existing databases
+  try { sqlite.exec(`ALTER TABLE partners ADD COLUMN description TEXT`); } catch { /* column exists */ }
 }
 
 export { getDb };
