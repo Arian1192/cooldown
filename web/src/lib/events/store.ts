@@ -560,9 +560,50 @@ export function listEvents(filters?: {
   });
 }
 
+export function updatePartner(
+  partnerId: string,
+  update: Partial<Pick<PartnerRecord, "name" | "slug" | "contactEmail">> & { raProfileUrl?: string | null },
+): PartnerRecord | undefined {
+  ensureSeeded();
+  const db = getDb();
+  const existing = db.select().from(partnersTable).where(eq(partnersTable.id, partnerId)).get();
+  if (!existing) return undefined;
+
+  const now = nowIso();
+  const patch: Partial<typeof partnersTable.$inferInsert> = { updatedAt: now };
+
+  if (update.name !== undefined) patch.name = update.name;
+  if (update.slug !== undefined) patch.slug = update.slug;
+  if (update.contactEmail !== undefined) patch.contactEmail = update.contactEmail;
+  if ("raProfileUrl" in update) patch.raProfileUrl = update.raProfileUrl ?? null;
+
+  db.update(partnersTable).set(patch).where(eq(partnersTable.id, partnerId)).run();
+
+  const updated = db.select().from(partnersTable).where(eq(partnersTable.id, partnerId)).get();
+  return updated ? rowToPartner(updated) : undefined;
+}
+
+export function deletePartner(partnerId: string): boolean {
+  ensureSeeded();
+  const db = getDb();
+  const existing = db.select().from(partnersTable).where(eq(partnersTable.id, partnerId)).get();
+  if (!existing) return false;
+  db.delete(partnersTable).where(eq(partnersTable.id, partnerId)).run();
+  return true;
+}
+
+export function deleteEvent(eventId: string): boolean {
+  ensureSeeded();
+  const db = getDb();
+  const existing = db.select().from(eventsTable).where(eq(eventsTable.id, eventId)).get();
+  if (!existing) return false;
+  db.delete(eventsTable).where(eq(eventsTable.id, eventId)).run();
+  return true;
+}
+
 export function updateEvent(
   eventId: string,
-  update: Partial<Pick<EventRecord, "status" | "title" | "date">>,
+  update: Partial<Pick<EventRecord, "status" | "title" | "date" | "venue" | "city" | "eventType">> & { description?: string | null; priceEur?: number | null },
 ): EventRecord | undefined {
   ensureSeeded();
   const db = getDb();
@@ -578,6 +619,11 @@ export function updateEvent(
   if (update.status !== undefined) patch.status = update.status;
   if (update.title !== undefined) patch.title = update.title;
   if (update.date !== undefined) patch.date = update.date;
+  if ("description" in update) patch.description = update.description ?? null;
+  if (update.venue !== undefined) patch.venue = update.venue;
+  if (update.city !== undefined) patch.city = update.city;
+  if (update.eventType !== undefined) patch.eventType = update.eventType;
+  if ("priceEur" in update) patch.priceEur = update.priceEur ?? null;
 
   db.update(eventsTable).set(patch).where(eq(eventsTable.id, eventId)).run();
 

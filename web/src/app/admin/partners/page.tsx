@@ -4,6 +4,7 @@ import { listEventRequests, listPartners } from '@/lib/events/store';
 import type { PartnerStatus } from '@/lib/events/types';
 
 import { PartnerApprovalActions } from './PartnerApprovalActions';
+import { PartnerCrudActions } from './PartnerCrudActions';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('es-ES', {
@@ -173,14 +174,17 @@ export default async function AdminPartnersPage({ searchParams }: PageProps) {
                     </Link>
                   </td>
                   <td className="px-5 py-4 text-right">
-                    <div className="flex items-start justify-end gap-2">
-                      <Link
-                        href={`/admin/partners/${partner.id}`}
-                        className="border border-[hsl(var(--border))] px-3 py-1.5 font-[family-name:var(--font-barlow)] text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted))] transition-colors hover:border-[hsl(var(--accent)/0.4)] hover:text-[hsl(var(--foreground))]"
-                      >
-                        Ver detalle
-                      </Link>
-                      <PartnerApprovalActions partnerId={partner.id} currentStatus={partner.status} />
+                    <div className="flex flex-col items-end gap-2">
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/admin/partners/${partner.id}`}
+                          className="border border-[hsl(var(--border))] px-3 py-1.5 font-[family-name:var(--font-barlow)] text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted))] transition-colors hover:border-[hsl(var(--accent)/0.4)] hover:text-[hsl(var(--foreground))]"
+                        >
+                          Ver detalle
+                        </Link>
+                        <PartnerApprovalActions partnerId={partner.id} currentStatus={partner.status} />
+                      </div>
+                      <PartnerCrudActions partner={partner} />
                     </div>
                   </td>
                 </tr>
