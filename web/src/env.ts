@@ -22,4 +22,7 @@ export const env = {
   CONTENT_SOURCE: process.env.CONTENT_SOURCE ?? 'strapi',
   CONTENT_JSON_URL: process.env.CONTENT_JSON_URL,
   CONTENT_ENABLE_SEED_FALLBACK: process.env.CONTENT_ENABLE_SEED_FALLBACK,
+
+  // Admin backoffice password (Basic Auth). If unset, /admin is open in dev.
+  ADMIN_SECRET: process.env.ADMIN_SECRET,
 };

@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { Barlow_Condensed, DM_Sans } from 'next/font/google';
 
 import { Analytics } from '@/components/Analytics';
-import { SiteShell } from '@/components/SiteShell';
 import { env } from '@/env';
 import { localeToOpenGraph } from '@/lib/i18n';
 import { getRequestLocale } from '@/lib/requestLocale';
@@ -79,7 +78,7 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <Analytics />
-        <SiteShell locale={locale}>{children}</SiteShell>
+        {children}
       </body>
     </html>
   );
