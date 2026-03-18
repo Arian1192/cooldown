@@ -10,6 +10,7 @@ import {
   type EventStatus,
   type EventType,
   type PartnerRecord,
+  type PartnerStatus,
 } from "@/lib/events/types";
 
 interface RequestInput {
@@ -82,14 +83,18 @@ function ensureSeeded(): void {
 
   if (existingPartners.length === 0) {
     for (const p of seedData.partners) {
+      const sp = p as { raProfileUrl?: string; status?: string; updatedAt?: string };
       db.insert(partnersTable)
         .values({
           id: p.id,
           name: p.name,
           slug: p.slug,
           contactEmail: p.contactEmail,
-          raProfileUrl: (p as { raProfileUrl?: string }).raProfileUrl ?? null,
+          raProfileUrl: sp.raProfileUrl ?? null,
+          status: sp.status ?? "approved",
+          rejectionReason: null,
           createdAt: p.createdAt,
+          updatedAt: sp.updatedAt ?? p.createdAt,
         })
         .onConflictDoNothing()
         .run();
@@ -179,7 +184,10 @@ function rowToPartner(row: PartnerRow): PartnerRecord {
     contactEmail: row.contactEmail,
     raProfileUrl: row.raProfileUrl ?? undefined,
     description: row.description ?? undefined,
+    status: (row.status as PartnerStatus) ?? "pending_approval",
+    rejectionReason: row.rejectionReason ?? undefined,
     createdAt: row.createdAt,
+    updatedAt: row.updatedAt || row.createdAt,
   };
 }
 
@@ -232,10 +240,46 @@ function rowToEventRequest(row: EventRequestRow): EventRequestRecord {
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
-export function listPartners(): PartnerRecord[] {
+export function listPartners(status?: PartnerStatus): PartnerRecord[] {
   ensureSeeded();
-  const rows = getDb().select().from(partnersTable).all();
+  const rows = status
+    ? getDb().select().from(partnersTable).where(eq(partnersTable.status, status)).all()
+    : getDb().select().from(partnersTable).all();
   return rows.map(rowToPartner);
+}
+
+export function findPartnerById(partnerId: string): PartnerRecord | undefined {
+  ensureSeeded();
+  const row = getDb().select().from(partnersTable).where(eq(partnersTable.id, partnerId)).get();
+  return row ? rowToPartner(row) : undefined;
+}
+
+export function approvePartner(partnerId: string): PartnerRecord | undefined {
+  ensureSeeded();
+  const db = getDb();
+  const existing = db.select().from(partnersTable).where(eq(partnersTable.id, partnerId)).get();
+  if (!existing) return undefined;
+  const now = nowIso();
+  db.update(partnersTable)
+    .set({ status: "approved", rejectionReason: null, updatedAt: now })
+    .where(eq(partnersTable.id, partnerId))
+    .run();
+  const updated = db.select().from(partnersTable).where(eq(partnersTable.id, partnerId)).get();
+  return updated ? rowToPartner(updated) : undefined;
+}
+
+export function rejectPartner(partnerId: string, reason?: string): PartnerRecord | undefined {
+  ensureSeeded();
+  const db = getDb();
+  const existing = db.select().from(partnersTable).where(eq(partnersTable.id, partnerId)).get();
+  if (!existing) return undefined;
+  const now = nowIso();
+  db.update(partnersTable)
+    .set({ status: "rejected", rejectionReason: reason ?? null, updatedAt: now })
+    .where(eq(partnersTable.id, partnerId))
+    .run();
+  const updated = db.select().from(partnersTable).where(eq(partnersTable.id, partnerId)).get();
+  return updated ? rowToPartner(updated) : undefined;
 }
 
 export function ensurePartner(input: {
@@ -278,6 +322,7 @@ export function ensurePartner(input: {
     return rowToPartner(existingBySlug);
   }
 
+  const now = nowIso();
   const created: PartnerRecord = {
     id: input.partnerId ?? newId("partner"),
     name: input.partnerName,
@@ -285,7 +330,9 @@ export function ensurePartner(input: {
     contactEmail: input.contactEmail,
     raProfileUrl: input.raProfileUrl,
     description: input.description,
-    createdAt: nowIso(),
+    status: "pending_approval",
+    createdAt: now,
+    updatedAt: now,
   };
 
   db.insert(partnersTable)
@@ -296,11 +343,19 @@ export function ensurePartner(input: {
       contactEmail: created.contactEmail,
       raProfileUrl: created.raProfileUrl ?? null,
       description: created.description ?? null,
+      status: created.status,
+      rejectionReason: null,
       createdAt: created.createdAt,
+      updatedAt: created.updatedAt,
     })
     .run();
 
   return created;
+}
+
+export function getPartnerForRequest(partnerId: string): PartnerRecord | undefined {
+  ensureSeeded();
+  return findPartnerById(partnerId);
 }
 
 export function createEventRequest(input: RequestInput): EventRequestRecord {

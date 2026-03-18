@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { createEventRequest, ensurePartner, listEventRequests } from "@/lib/events/store";
+import { createEventRequest, ensurePartner, findPartnerById, listEventRequests } from "@/lib/events/store";
 import { parseEventRequestPayload, parseRequestStatus } from "@/lib/events/validators";
 
 export async function GET(request: Request) {
@@ -29,11 +29,30 @@ export async function POST(request: Request) {
     );
   }
 
+  // Check if an existing partner is approved before allowing event requests
+  if (parsed.data.partnerId) {
+    const existing = findPartnerById(parsed.data.partnerId);
+    if (existing && existing.status !== "approved") {
+      return NextResponse.json(
+        { error: "Partner not approved", details: "Tu cuenta de partner debe estar aprobada antes de enviar solicitudes de eventos." },
+        { status: 403 },
+      );
+    }
+  }
+
   const partner = ensurePartner({
     partnerId: parsed.data.partnerId,
     partnerName: parsed.data.partnerName,
     contactEmail: parsed.data.contactEmail,
   });
+
+  // Re-check status after ensurePartner (newly created partners are pending_approval)
+  if (partner.status !== "approved") {
+    return NextResponse.json(
+      { error: "Partner not approved", details: "Tu cuenta de partner debe estar aprobada antes de enviar solicitudes de eventos." },
+      { status: 403 },
+    );
+  }
 
   const created = createEventRequest({
     partnerId: partner.id,

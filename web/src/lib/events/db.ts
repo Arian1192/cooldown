@@ -12,7 +12,10 @@ export const partnersTable = sqliteTable("partners", {
   contactEmail: text("contact_email").notNull(),
   raProfileUrl: text("ra_profile_url"),
   description: text("description"),
+  status: text("status").notNull().default("pending_approval"),
+  rejectionReason: text("rejection_reason"),
   createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull().default(""),
 });
 
 export const eventsTable = sqliteTable("events", {
@@ -94,7 +97,10 @@ function initSchema(sqlite: Database.Database): void {
       contact_email TEXT NOT NULL,
       ra_profile_url TEXT,
       description TEXT,
-      created_at TEXT NOT NULL
+      status TEXT NOT NULL DEFAULT 'pending_approval',
+      rejection_reason TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL DEFAULT ''
     );
 
     CREATE TABLE IF NOT EXISTS events (
@@ -144,6 +150,9 @@ function initSchema(sqlite: Database.Database): void {
   // Migrations for existing databases
   try { sqlite.exec(`ALTER TABLE partners ADD COLUMN description TEXT`); } catch { /* column exists */ }
   try { sqlite.exec(`ALTER TABLE events ADD COLUMN slug TEXT NOT NULL DEFAULT ''`); } catch { /* column exists */ }
+  try { sqlite.exec(`ALTER TABLE partners ADD COLUMN status TEXT NOT NULL DEFAULT 'pending_approval'`); } catch { /* column exists */ }
+  try { sqlite.exec(`ALTER TABLE partners ADD COLUMN rejection_reason TEXT`); } catch { /* column exists */ }
+  try { sqlite.exec(`ALTER TABLE partners ADD COLUMN updated_at TEXT NOT NULL DEFAULT ''`); } catch { /* column exists */ }
 }
 
 export { getDb };
