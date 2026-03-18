@@ -7,15 +7,15 @@ const NAV_ITEMS = [
   { href: '/admin/requests', label: 'Solicitudes de eventos' },
   { href: '/admin/partners', label: 'Partners' },
   { href: '/admin/events', label: 'Eventos publicados' },
-  { href: '/admin/import-ra', label: 'Importar RA' },
+  { href: '/admin/events/import', label: 'Importar RA' },
 ];
 
 const SECTION_LABELS: Record<string, string> = {
   '/admin': 'Dashboard',
   '/admin/requests': 'Solicitudes de eventos',
   '/admin/partners': 'Partners',
+  '/admin/events/import': 'Importar RA',
   '/admin/events': 'Eventos publicados',
-  '/admin/import-ra': 'Importar RA',
 };
 
 export function AdminNav() {
