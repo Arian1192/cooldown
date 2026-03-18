@@ -186,6 +186,7 @@ function rowToPartner(row: PartnerRow): PartnerRecord {
     description: row.description ?? undefined,
     status: (row.status as PartnerStatus) ?? "pending_approval",
     rejectionReason: row.rejectionReason ?? undefined,
+    accessToken: row.accessToken ?? undefined,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt || row.createdAt,
   };
@@ -254,14 +255,31 @@ export function findPartnerById(partnerId: string): PartnerRecord | undefined {
   return row ? rowToPartner(row) : undefined;
 }
 
+export function findPartnerByToken(token: string): PartnerRecord | undefined {
+  ensureSeeded();
+  const row = getDb().select().from(partnersTable).where(eq(partnersTable.accessToken, token)).get();
+  return row ? rowToPartner(row) : undefined;
+}
+
+export function listEventRequestsByPartnerId(partnerId: string): EventRequestRecord[] {
+  ensureSeeded();
+  const rows = getDb()
+    .select()
+    .from(eventRequestsTable)
+    .where(eq(eventRequestsTable.partnerId, partnerId))
+    .all();
+  return rows.map(rowToEventRequest);
+}
+
 export function approvePartner(partnerId: string): PartnerRecord | undefined {
   ensureSeeded();
   const db = getDb();
   const existing = db.select().from(partnersTable).where(eq(partnersTable.id, partnerId)).get();
   if (!existing) return undefined;
   const now = nowIso();
+  const accessToken = existing.accessToken ?? crypto.randomUUID();
   db.update(partnersTable)
-    .set({ status: "approved", rejectionReason: null, updatedAt: now })
+    .set({ status: "approved", rejectionReason: null, accessToken, updatedAt: now })
     .where(eq(partnersTable.id, partnerId))
     .run();
   const updated = db.select().from(partnersTable).where(eq(partnersTable.id, partnerId)).get();

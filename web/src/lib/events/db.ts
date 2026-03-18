@@ -14,6 +14,7 @@ export const partnersTable = sqliteTable("partners", {
   description: text("description"),
   status: text("status").notNull().default("pending_approval"),
   rejectionReason: text("rejection_reason"),
+  accessToken: text("access_token").unique(),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull().default(""),
 });
@@ -153,6 +154,7 @@ function initSchema(sqlite: Database.Database): void {
   try { sqlite.exec(`ALTER TABLE partners ADD COLUMN status TEXT NOT NULL DEFAULT 'pending_approval'`); } catch { /* column exists */ }
   try { sqlite.exec(`ALTER TABLE partners ADD COLUMN rejection_reason TEXT`); } catch { /* column exists */ }
   try { sqlite.exec(`ALTER TABLE partners ADD COLUMN updated_at TEXT NOT NULL DEFAULT ''`); } catch { /* column exists */ }
+  try { sqlite.exec(`ALTER TABLE partners ADD COLUMN access_token TEXT UNIQUE`); } catch { /* column exists */ }
 }
 
 export { getDb };

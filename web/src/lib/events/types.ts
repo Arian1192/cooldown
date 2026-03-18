@@ -45,6 +45,7 @@ export interface PartnerRecord {
   description?: string;
   status: PartnerStatus;
   rejectionReason?: string;
+  accessToken?: string;
   createdAt: string;
   updatedAt: string;
 }
