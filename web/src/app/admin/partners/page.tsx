@@ -1,6 +1,10 @@
 import Link from 'next/link';
 
 import { listEventRequests, listPartners } from '@/lib/events/store';
+import type { PartnerStatus } from '@/lib/events/types';
+
+import { PartnerApprovalActions } from './PartnerApprovalActions';
+import { PartnerCrudActions } from './PartnerCrudActions';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('es-ES', {
@@ -10,9 +14,45 @@ function formatDate(iso: string) {
   });
 }
 
-export default function AdminPartnersPage() {
-  const partners = listPartners();
+const PARTNER_STATUS_LABELS: Record<PartnerStatus, string> = {
+  pending_approval: 'Pendiente',
+  approved: 'Aprobado',
+  rejected: 'Rechazado',
+};
+
+const PARTNER_STATUS_COLORS: Record<PartnerStatus, string> = {
+  pending_approval: 'text-yellow-300 border-yellow-400/40 bg-yellow-400/10',
+  approved: 'text-green-300 border-green-400/40 bg-green-400/10',
+  rejected: 'text-red-300 border-red-400/40 bg-red-400/10',
+};
+
+const STATUS_FILTER_OPTIONS: Array<{ label: string; value: PartnerStatus | 'all' }> = [
+  { label: 'Todos', value: 'all' },
+  { label: 'Pendientes', value: 'pending_approval' },
+  { label: 'Aprobados', value: 'approved' },
+  { label: 'Rechazados', value: 'rejected' },
+];
+
+interface PageProps {
+  searchParams: Promise<{ status?: string }>;
+}
+
+export default async function AdminPartnersPage({ searchParams }: PageProps) {
+  const { status } = await searchParams;
+  const statusFilter = (
+    status && ['pending_approval', 'approved', 'rejected'].includes(status)
+      ? status
+      : undefined
+  ) as PartnerStatus | undefined;
+
+  const partners = listPartners(statusFilter);
+  const allPartners = listPartners();
   const allRequests = listEventRequests();
+
+  const countByStatus = allPartners.reduce<Record<string, number>>((acc, p) => {
+    acc[p.status] = (acc[p.status] ?? 0) + 1;
+    return acc;
+  }, {});
 
   const requestCountByPartner = allRequests.reduce<Record<string, number>>((acc, req) => {
     acc[req.partnerId] = (acc[req.partnerId] ?? 0) + 1;
@@ -26,14 +66,41 @@ export default function AdminPartnersPage() {
           Partners
         </h1>
         <p className="mt-1 font-[family-name:var(--font-barlow)] text-[11px] uppercase tracking-[0.18em] text-[hsl(var(--muted))]">
-          {partners.length} partner{partners.length !== 1 ? 's' : ''} registrado{partners.length !== 1 ? 's' : ''}
+          {allPartners.length} partner{allPartners.length !== 1 ? 's' : ''} registrado{allPartners.length !== 1 ? 's' : ''}
+          {countByStatus['pending_approval'] ? (
+            <span className="ml-2 text-yellow-300">· {countByStatus['pending_approval']} pendiente{countByStatus['pending_approval'] !== 1 ? 's' : ''}</span>
+          ) : null}
         </p>
+      </div>
+
+      {/* Status filter tabs */}
+      <div className="mb-6 flex gap-1 border-b border-[hsl(var(--border))]">
+        {STATUS_FILTER_OPTIONS.map((opt) => {
+          const isActive = (statusFilter ?? 'all') === opt.value;
+          const count = opt.value === 'all' ? allPartners.length : (countByStatus[opt.value] ?? 0);
+          const href = opt.value === 'all' ? '/admin/partners' : `/admin/partners?status=${opt.value}`;
+          return (
+            <Link
+              key={opt.value}
+              href={href}
+              className={[
+                'px-4 py-2 font-[family-name:var(--font-barlow)] text-[10px] uppercase tracking-[0.18em] transition-colors border-b-2 -mb-px',
+                isActive
+                  ? 'border-[hsl(var(--accent))] text-[hsl(var(--foreground))]'
+                  : 'border-transparent text-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))]',
+              ].join(' ')}
+            >
+              {opt.label}
+              <span className="ml-1.5 font-normal opacity-70">({count})</span>
+            </Link>
+          );
+        })}
       </div>
 
       {partners.length === 0 ? (
         <div className="border border-[hsl(var(--border))] p-10 text-center">
           <p className="font-[family-name:var(--font-barlow)] text-[11px] uppercase tracking-[0.22em] text-[hsl(var(--muted))]">
-            No hay partners registrados
+            No hay partners {statusFilter ? `con estado "${PARTNER_STATUS_LABELS[statusFilter]}"` : 'registrados'}
           </p>
         </div>
       ) : (
@@ -44,8 +111,8 @@ export default function AdminPartnersPage() {
                 <th className="px-5 py-3 text-left font-[family-name:var(--font-barlow)] text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted))]">
                   Nombre
                 </th>
-                <th className="px-5 py-3 text-left font-[family-name:var(--font-barlow)] text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted))] hidden sm:table-cell">
-                  Slug
+                <th className="px-5 py-3 text-left font-[family-name:var(--font-barlow)] text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted))]">
+                  Estado
                 </th>
                 <th className="px-5 py-3 text-left font-[family-name:var(--font-barlow)] text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted))] hidden md:table-cell">
                   Email de contacto
@@ -85,8 +152,12 @@ export default function AdminPartnersPage() {
                       )}
                     </div>
                   </td>
-                  <td className="px-5 py-4 hidden sm:table-cell">
-                    <span className="font-mono text-xs text-[hsl(var(--muted))]">{partner.slug}</span>
+                  <td className="px-5 py-4">
+                    <span
+                      className={`inline-flex items-center border px-2 py-0.5 font-[family-name:var(--font-barlow)] text-[9px] uppercase tracking-[0.2em] ${PARTNER_STATUS_COLORS[partner.status]}`}
+                    >
+                      {PARTNER_STATUS_LABELS[partner.status]}
+                    </span>
                   </td>
                   <td className="px-5 py-4 hidden md:table-cell">
                     <span className="text-xs text-[hsl(var(--muted))]">{partner.contactEmail}</span>
@@ -103,13 +174,17 @@ export default function AdminPartnersPage() {
                     </Link>
                   </td>
                   <td className="px-5 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Link
-                        href={`/admin/partners/${partner.id}`}
-                        className="border border-[hsl(var(--border))] px-3 py-1.5 font-[family-name:var(--font-barlow)] text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted))] transition-colors hover:border-[hsl(var(--accent)/0.4)] hover:text-[hsl(var(--foreground))]"
-                      >
-                        Ver detalle
-                      </Link>
+                    <div className="flex flex-col items-end gap-2">
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/admin/partners/${partner.id}`}
+                          className="border border-[hsl(var(--border))] px-3 py-1.5 font-[family-name:var(--font-barlow)] text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted))] transition-colors hover:border-[hsl(var(--accent)/0.4)] hover:text-[hsl(var(--foreground))]"
+                        >
+                          Ver detalle
+                        </Link>
+                        <PartnerApprovalActions partnerId={partner.id} currentStatus={partner.status} />
+                      </div>
+                      <PartnerCrudActions partner={partner} />
                     </div>
                   </td>
                 </tr>

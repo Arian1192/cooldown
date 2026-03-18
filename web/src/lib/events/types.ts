@@ -1,5 +1,7 @@
 export type EventOrigin = "native" | "partner" | "ra_imported";
 
+export type PartnerStatus = "pending_approval" | "approved" | "rejected";
+
 export type EventStatus = "draft" | "published";
 
 export type EventRequestStatus = "pending_review" | "approved" | "rejected";
@@ -41,7 +43,11 @@ export interface PartnerRecord {
   contactEmail: string;
   raProfileUrl?: string;
   description?: string;
+  status: PartnerStatus;
+  rejectionReason?: string;
+  accessToken?: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface EventRequestRecord {

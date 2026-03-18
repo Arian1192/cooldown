@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { listEvents } from '@/lib/events/store';
 import type { EventOrigin, EventStatus } from '@/lib/events/types';
 
+import { EventCrudActions } from './EventCrudActions';
 import { EventStatusToggle } from './EventStatusToggle';
 
 const STATUS_TABS: { value: EventStatus | 'all'; label: string }[] = [
@@ -250,8 +251,9 @@ export default async function AdminEventsPage({ searchParams }: PageProps) {
                     <span className="text-xs text-[hsl(var(--muted))]">{formatDate(event.createdAt)}</span>
                   </td>
                   <td className="px-5 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex flex-col items-end gap-2">
                       <EventStatusToggle eventId={event.id} currentStatus={event.status} />
+                      <EventCrudActions event={event} />
                     </div>
                   </td>
                 </tr>

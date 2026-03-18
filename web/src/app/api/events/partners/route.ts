@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { sendEmail } from "@/lib/email/resend";
+import { partnerRegistrationReceived } from "@/lib/email/templates/partner-registration-received";
 import { ensurePartner, listPartners } from "@/lib/events/store";
 
 export async function GET() {
@@ -39,6 +41,12 @@ export async function POST(request: NextRequest) {
     contactEmail: (data.contactEmail as string).trim(),
     raProfileUrl: typeof data.raProfileUrl === "string" && data.raProfileUrl.trim() ? data.raProfileUrl.trim() : undefined,
     description: typeof data.description === "string" && data.description.trim() ? data.description.trim() : undefined,
+  });
+
+  void sendEmail({
+    to: partner.contactEmail,
+    subject: "Solicitud de partner recibida — Cooldown",
+    html: partnerRegistrationReceived({ partnerName: partner.name, contactEmail: partner.contactEmail }),
   });
 
   return NextResponse.json({ data: partner }, { status: 201 });

@@ -1,0 +1,32 @@
+import { NextRequest, NextResponse } from "next/server";
+
+import { env } from "@/env";
+import { sendEmail } from "@/lib/email/resend";
+import { partnerApproved } from "@/lib/email/templates/partner-approved";
+import { approvePartner } from "@/lib/events/store";
+
+interface RouteParams {
+  params: Promise<{ id: string }>;
+}
+
+export async function POST(_request: NextRequest, { params }: RouteParams) {
+  const { id } = await params;
+  const partner = approvePartner(id);
+
+  if (!partner) {
+    return NextResponse.json({ error: "Partner not found" }, { status: 404 });
+  }
+
+  const baseUrl = env.SITE_URL ?? "https://cooldownblog.vercel.app";
+  const portalUrl = partner.accessToken
+    ? `${baseUrl}/partner/${partner.accessToken}`
+    : undefined;
+
+  void sendEmail({
+    to: partner.contactEmail,
+    subject: "¡Bienvenido a Cooldown Partners!",
+    html: partnerApproved({ partnerName: partner.name, portalUrl }),
+  });
+
+  return NextResponse.json({ data: partner });
+}

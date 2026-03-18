@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-import { listEventRequests, listPartners } from '@/lib/events/store';
-import type { EventRequestStatus } from '@/lib/events/types';
+import { PartnerApprovalActions } from '@/app/admin/partners/PartnerApprovalActions';
+import { findPartnerById, listEventRequests } from '@/lib/events/store';
+import type { EventRequestStatus, PartnerStatus } from '@/lib/events/types';
 
 const STATUS_LABELS: Record<EventRequestStatus, string> = {
   pending_review: 'Pendiente',
@@ -12,6 +13,18 @@ const STATUS_LABELS: Record<EventRequestStatus, string> = {
 
 const STATUS_COLORS: Record<EventRequestStatus, string> = {
   pending_review: 'text-yellow-300 border-yellow-400/40 bg-yellow-400/10',
+  approved: 'text-green-300 border-green-400/40 bg-green-400/10',
+  rejected: 'text-red-300 border-red-400/40 bg-red-400/10',
+};
+
+const PARTNER_STATUS_LABELS: Record<PartnerStatus, string> = {
+  pending_approval: 'Pendiente de aprobación',
+  approved: 'Aprobado',
+  rejected: 'Rechazado',
+};
+
+const PARTNER_STATUS_COLORS: Record<PartnerStatus, string> = {
+  pending_approval: 'text-yellow-300 border-yellow-400/40 bg-yellow-400/10',
   approved: 'text-green-300 border-green-400/40 bg-green-400/10',
   rejected: 'text-red-300 border-red-400/40 bg-red-400/10',
 };
@@ -38,8 +51,7 @@ interface PageProps {
 export default async function AdminPartnerDetailPage({ params }: PageProps) {
   const { partnerId } = await params;
 
-  const partners = listPartners();
-  const partner = partners.find((p) => p.id === partnerId);
+  const partner = findPartnerById(partnerId);
 
   if (!partner) {
     notFound();
@@ -69,22 +81,42 @@ export default async function AdminPartnerDetailPage({ params }: PageProps) {
       {/* Partner header */}
       <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="font-[family-name:var(--font-barlow)] text-[clamp(1.6rem,3vw,2.4rem)] font-bold uppercase tracking-[-0.02em]">
-            {partner.name}
-          </h1>
+          <div className="flex flex-wrap items-center gap-3 mb-1">
+            <h1 className="font-[family-name:var(--font-barlow)] text-[clamp(1.6rem,3vw,2.4rem)] font-bold uppercase tracking-[-0.02em]">
+              {partner.name}
+            </h1>
+            <span
+              className={`inline-flex items-center border px-2.5 py-1 font-[family-name:var(--font-barlow)] text-[9px] uppercase tracking-[0.2em] ${PARTNER_STATUS_COLORS[partner.status]}`}
+            >
+              {PARTNER_STATUS_LABELS[partner.status]}
+            </span>
+          </div>
           <p className="mt-1 font-mono text-xs text-[hsl(var(--muted))]">{partner.slug}</p>
         </div>
-        {partner.raProfileUrl && (
-          <a
-            href={partner.raProfileUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center border border-[hsl(var(--border))] px-3 py-1.5 font-[family-name:var(--font-barlow)] text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted))] transition-colors hover:border-[hsl(var(--accent)/0.4)] hover:text-[hsl(var(--foreground))]"
-          >
-            Ver perfil en Resident Advisor ↗
-          </a>
-        )}
+        <div className="flex flex-wrap items-center gap-3">
+          {partner.raProfileUrl && (
+            <a
+              href={partner.raProfileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center border border-[hsl(var(--border))] px-3 py-1.5 font-[family-name:var(--font-barlow)] text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted))] transition-colors hover:border-[hsl(var(--accent)/0.4)] hover:text-[hsl(var(--foreground))]"
+            >
+              Ver perfil en Resident Advisor ↗
+            </a>
+          )}
+          <PartnerApprovalActions partnerId={partner.id} currentStatus={partner.status} />
+        </div>
       </div>
+
+      {/* Rejection reason if rejected */}
+      {partner.status === 'rejected' && partner.rejectionReason && (
+        <div className="mb-6 border border-red-400/30 bg-red-400/5 p-4" style={{ borderRadius: 'var(--radius)' }}>
+          <p className="font-[family-name:var(--font-barlow)] text-[10px] uppercase tracking-[0.18em] text-red-300 mb-1">
+            Motivo de rechazo
+          </p>
+          <p className="text-sm text-[hsl(var(--foreground)/0.8)]">{partner.rejectionReason}</p>
+        </div>
+      )}
 
       {/* Partner metadata */}
       <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3 border border-[hsl(var(--border))] bg-[hsl(var(--surface))] p-5" style={{ borderRadius: 'var(--radius)' }}>

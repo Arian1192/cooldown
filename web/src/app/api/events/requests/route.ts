@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { createEventRequest, ensurePartner, listEventRequests } from "@/lib/events/store";
+import { sendEmail } from "@/lib/email/resend";
+import { eventRequestReceived } from "@/lib/email/templates/event-request-received";
+import { createEventRequest, ensurePartner, findPartnerById, listEventRequests } from "@/lib/events/store";
 import { parseEventRequestPayload, parseRequestStatus } from "@/lib/events/validators";
 
 export async function GET(request: Request) {
@@ -29,11 +31,30 @@ export async function POST(request: Request) {
     );
   }
 
+  // Check if an existing partner is approved before allowing event requests
+  if (parsed.data.partnerId) {
+    const existing = findPartnerById(parsed.data.partnerId);
+    if (existing && existing.status !== "approved") {
+      return NextResponse.json(
+        { error: "Partner not approved", details: "Tu cuenta de partner debe estar aprobada antes de enviar solicitudes de eventos." },
+        { status: 403 },
+      );
+    }
+  }
+
   const partner = ensurePartner({
     partnerId: parsed.data.partnerId,
     partnerName: parsed.data.partnerName,
     contactEmail: parsed.data.contactEmail,
   });
+
+  // Re-check status after ensurePartner (newly created partners are pending_approval)
+  if (partner.status !== "approved") {
+    return NextResponse.json(
+      { error: "Partner not approved", details: "Tu cuenta de partner debe estar aprobada antes de enviar solicitudes de eventos." },
+      { status: 403 },
+    );
+  }
 
   const created = createEventRequest({
     partnerId: partner.id,
@@ -49,6 +70,18 @@ export async function POST(request: Request) {
     priceEur: parsed.data.priceEur,
     ticketUrl: parsed.data.ticketUrl,
     sourceRaUrl: parsed.data.sourceRaUrl,
+  });
+
+  void sendEmail({
+    to: partner.contactEmail,
+    subject: "Solicitud de evento recibida — Cooldown",
+    html: eventRequestReceived({
+      partnerName: partner.name,
+      eventTitle: created.title,
+      eventDate: created.date,
+      eventVenue: created.venue,
+      eventCity: created.city,
+    }),
   });
 
   return NextResponse.json(

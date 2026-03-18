@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 
+import { sendEmail } from "@/lib/email/resend";
+import { eventApproved } from "@/lib/email/templates/event-approved";
 import {
   createEvent,
   findEventRequestById,
+  findPartnerById,
   updateEventRequest,
 } from "@/lib/events/store";
 import { parseModerationPayload } from "@/lib/events/validators";
@@ -102,6 +105,22 @@ export async function PATCH(request: Request, context: RouteContext) {
     linkedEventId: publishedEvent.id,
     moderationNotes: parsed.data.moderationNotes,
   });
+
+  const partner = findPartnerById(target.partnerId);
+  if (partner) {
+    void sendEmail({
+      to: partner.contactEmail,
+      subject: "Tu evento está publicado en Cooldown",
+      html: eventApproved({
+        partnerName: partner.name,
+        eventTitle: publishedEvent.title,
+        eventDate: publishedEvent.date,
+        eventVenue: publishedEvent.venue,
+        eventCity: publishedEvent.city,
+        eventSlug: publishedEvent.slug,
+      }),
+    });
+  }
 
   return NextResponse.json({
     message: "Request approved and event published",
