@@ -456,9 +456,10 @@ export default async function EventsPage({
       {filtered.length ? (
         <section className="grid gap-3 sm:grid-cols-2" aria-label="Events list">
           {filtered.map((event, index) => (
-            <article
+            <Link
               key={event.slug}
-              className="event-reveal border border-border bg-surface p-4 transition-transform duration-200 ease-out hover:-translate-y-0.5 hover:border-accent/45"
+              href={`/events/${event.slug}`}
+              className="event-reveal block border border-border bg-surface p-4 transition-transform duration-200 ease-out hover:-translate-y-0.5 hover:border-accent/45"
               style={{ '--stagger': index } as CSSProperties}
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
@@ -515,7 +516,7 @@ export default async function EventsPage({
                   </span>
                 ))}
               </div>
-            </article>
+            </Link>
           ))}
         </section>
       ) : (

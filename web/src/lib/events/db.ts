@@ -17,6 +17,7 @@ export const partnersTable = sqliteTable("partners", {
 
 export const eventsTable = sqliteTable("events", {
   id: text("id").primaryKey(),
+  slug: text("slug").notNull().default(""),
   title: text("title").notNull(),
   description: text("description"),
   date: text("date").notNull(),
@@ -98,6 +99,7 @@ function initSchema(sqlite: Database.Database): void {
 
     CREATE TABLE IF NOT EXISTS events (
       id TEXT PRIMARY KEY,
+      slug TEXT NOT NULL DEFAULT '',
       title TEXT NOT NULL,
       description TEXT,
       date TEXT NOT NULL,
@@ -141,6 +143,7 @@ function initSchema(sqlite: Database.Database): void {
 
   // Migrations for existing databases
   try { sqlite.exec(`ALTER TABLE partners ADD COLUMN description TEXT`); } catch { /* column exists */ }
+  try { sqlite.exec(`ALTER TABLE events ADD COLUMN slug TEXT NOT NULL DEFAULT ''`); } catch { /* column exists */ }
 }
 
 export { getDb };
