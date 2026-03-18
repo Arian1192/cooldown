@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { sendEmail } from "@/lib/email/resend";
+import { partnerApproved } from "@/lib/email/templates/partner-approved";
 import { approvePartner } from "@/lib/events/store";
 
 interface RouteParams {
@@ -13,6 +15,12 @@ export async function POST(_request: NextRequest, { params }: RouteParams) {
   if (!partner) {
     return NextResponse.json({ error: "Partner not found" }, { status: 404 });
   }
+
+  void sendEmail({
+    to: partner.contactEmail,
+    subject: "¡Bienvenido a Cooldown Partners!",
+    html: partnerApproved({ partnerName: partner.name }),
+  });
 
   return NextResponse.json({ data: partner });
 }

@@ -25,4 +25,7 @@ export const env = {
 
   // Admin backoffice password (Basic Auth). If unset, /admin is open in dev.
   ADMIN_SECRET: process.env.ADMIN_SECRET,
+
+  // Resend API key for transactional emails. If unset, emails are silently skipped.
+  RESEND_API_KEY: process.env.RESEND_API_KEY,
 };

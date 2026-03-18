@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { sendEmail } from "@/lib/email/resend";
+import { eventRequestReceived } from "@/lib/email/templates/event-request-received";
 import { createEventRequest, ensurePartner, findPartnerById, listEventRequests } from "@/lib/events/store";
 import { parseEventRequestPayload, parseRequestStatus } from "@/lib/events/validators";
 
@@ -68,6 +70,18 @@ export async function POST(request: Request) {
     priceEur: parsed.data.priceEur,
     ticketUrl: parsed.data.ticketUrl,
     sourceRaUrl: parsed.data.sourceRaUrl,
+  });
+
+  void sendEmail({
+    to: partner.contactEmail,
+    subject: "Solicitud de evento recibida — Cooldown",
+    html: eventRequestReceived({
+      partnerName: partner.name,
+      eventTitle: created.title,
+      eventDate: created.date,
+      eventVenue: created.venue,
+      eventCity: created.city,
+    }),
   });
 
   return NextResponse.json(
