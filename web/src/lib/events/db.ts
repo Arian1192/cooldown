@@ -100,6 +100,7 @@ function initSchema(sqlite: Database.Database): void {
       description TEXT,
       status TEXT NOT NULL DEFAULT 'pending_approval',
       rejection_reason TEXT,
+      access_token TEXT UNIQUE,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL DEFAULT ''
     );
