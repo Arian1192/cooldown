@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import path from "node:path";
 
 import Database from "better-sqlite3";
@@ -69,6 +70,7 @@ function getDb(): DbInstance {
       process.env.EVENTS_DB_PATH ??
       path.join(process.cwd(), "data", "events.db");
 
+    fs.mkdirSync(path.dirname(dbPath), { recursive: true });
     const sqlite = new Database(dbPath);
     sqlite.pragma("journal_mode = WAL");
     sqlite.pragma("foreign_keys = ON");
