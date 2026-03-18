@@ -27,6 +27,11 @@ COPY --from=builder /app/web/public ./public
 COPY --from=builder /app/web/.next/standalone ./
 COPY --from=builder /app/web/.next/static ./.next/static
 
+# Create the default SQLite data directory and grant write access to the app user.
+# In production, mount a persistent volume over /app/data (or set EVENTS_DB_PATH
+# to a path on a mounted volume) so data survives container restarts.
+RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data
+
 USER nextjs
 
 EXPOSE 3000
