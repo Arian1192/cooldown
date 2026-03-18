@@ -15,6 +15,7 @@ export interface EventSourceMetadata {
 
 export interface EventRecord {
   id: string;
+  slug: string;
   title: string;
   description?: string;
   date: string;

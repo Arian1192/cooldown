@@ -53,6 +53,16 @@ function newId(prefix: string): string {
   return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
+function slugify(text: string): string {
+  return text
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
 // ── Seed ─────────────────────────────────────────────────────────────────────
 
 const SEEDED_KEY = "__COOLDOWN_EVENTS_SEEDED__";
@@ -129,6 +139,7 @@ function ensureSeeded(): void {
       db.insert(eventsTable)
         .values({
           id: ev.id,
+          slug: slugify(ev.title),
           title: ev.title,
           description: ev.description ?? null,
           date: ev.date,
@@ -175,6 +186,7 @@ function rowToPartner(row: PartnerRow): PartnerRecord {
 function rowToEvent(row: EventRow): EventRecord {
   return {
     id: row.id,
+    slug: row.slug || slugify(row.title),
     title: row.title,
     description: row.description ?? undefined,
     date: row.date,
@@ -404,6 +416,7 @@ export function createEvent(input: EventInput): EventRecord {
   const now = nowIso();
   const record: EventRecord = {
     id: newId("evt"),
+    slug: slugify(input.title),
     createdAt: now,
     updatedAt: now,
     ...input,
@@ -413,6 +426,7 @@ export function createEvent(input: EventInput): EventRecord {
     .insert(eventsTable)
     .values({
       id: record.id,
+      slug: record.slug,
       title: record.title,
       description: record.description ?? null,
       date: record.date,
@@ -523,4 +537,13 @@ export function findEventBySourceExternalId(sourceExternalId: string): EventReco
   return rows
     .map(rowToEvent)
     .find((event) => event.source.sourceExternalId?.trim().toLowerCase() === normalized);
+}
+
+export function getEventBySlug(slug: string): EventRecord | undefined {
+  ensureSeeded();
+  const normalized = slug.trim().toLowerCase();
+  const rows = getDb().select().from(eventsTable).all();
+  return rows
+    .map(rowToEvent)
+    .find((event) => event.slug === normalized);
 }

@@ -84,6 +84,13 @@ export function parseResidentAdvisorEvent(
 
 export function toDraftRaEvent(parsed: ParsedResidentAdvisorEvent): Omit<EventRecord, "id" | "createdAt" | "updatedAt"> {
   return {
+    slug: parsed.title
+      .trim()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, ""),
     title: parsed.title,
     date: parsed.date,
     city: parsed.city,
