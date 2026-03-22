@@ -64,7 +64,7 @@ Route handlers under `src/app/api/events` provide a backend contract for partner
 - `POST /api/events/import/ra` manual RA URL import with dedupe by `sourceExternalId`
 - `POST /api/events/import/ra/sync` batch import endpoint intended for scheduled jobs
 
-Current implementation uses an in-memory store seeded from `src/data/events-backend.seed.json` so frontend integration can proceed before persistent DB wiring.
+Current implementation uses a file-backed store seeded from `src/data/events-backend.seed.json` and persisted to `.data/events-backend.state.json` to survive process restarts in local/runtime environments.
 
 ## Deploy (Coolify)
 

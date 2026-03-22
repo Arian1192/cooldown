@@ -1,3 +1,6 @@
+import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+
 import seedData from "@/data/events-backend.seed.json";
 import {
   type EventRecord,
@@ -10,6 +13,7 @@ import {
 } from "@/lib/events/types";
 
 const stateKey = "__COOLDOWN_EVENTS_BACKEND_STATE__";
+const persistenceFilePath = join(process.cwd(), ".data", "events-backend.state.json");
 
 interface RequestInput {
   partnerId: string;
@@ -62,16 +66,59 @@ function cloneSeed(): EventsBackendState {
   };
 }
 
+function cloneState(state: EventsBackendState): EventsBackendState {
+  return JSON.parse(JSON.stringify(state)) as EventsBackendState;
+}
+
+function isStateShape(value: unknown): value is EventsBackendState {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Partial<EventsBackendState>;
+  return (
+    Array.isArray(candidate.partners) &&
+    Array.isArray(candidate.eventRequests) &&
+    Array.isArray(candidate.events)
+  );
+}
+
+function readPersistedState(): EventsBackendState | null {
+  try {
+    const raw = readFileSync(persistenceFilePath, "utf8");
+    const parsed = JSON.parse(raw) as unknown;
+
+    if (!isStateShape(parsed)) {
+      return null;
+    }
+
+    return cloneState(parsed);
+  } catch {
+    return null;
+  }
+}
+
+function writePersistedState(state: EventsBackendState): void {
+  mkdirSync(dirname(persistenceFilePath), { recursive: true });
+  const temporaryPath = `${persistenceFilePath}.tmp`;
+  writeFileSync(temporaryPath, JSON.stringify(state, null, 2), "utf8");
+  renameSync(temporaryPath, persistenceFilePath);
+}
+
 function getState(): EventsBackendState {
   const globalWithState = globalThis as typeof globalThis & {
     [stateKey]?: EventsBackendState;
   };
 
   if (!globalWithState[stateKey]) {
-    globalWithState[stateKey] = cloneSeed();
+    globalWithState[stateKey] = readPersistedState() ?? cloneSeed();
   }
 
   return globalWithState[stateKey] as EventsBackendState;
+}
+
+function persistState(state: EventsBackendState): void {
+  writePersistedState(state);
 }
 
 export function listPartners(): PartnerRecord[] {
@@ -114,6 +161,7 @@ export function ensurePartner(input: {
   };
 
   state.partners.push(created);
+  persistState(state);
   return created;
 }
 
@@ -130,6 +178,7 @@ export function createEventRequest(input: RequestInput): EventRequestRecord {
   };
 
   state.eventRequests.push(request);
+  persistState(state);
   return request;
 }
 
@@ -166,6 +215,7 @@ export function updateEventRequest(
   };
 
   state.eventRequests[index] = next;
+  persistState(state);
   return next;
 }
 
@@ -181,6 +231,7 @@ export function createEvent(input: EventInput): EventRecord {
   };
 
   state.events.push(event);
+  persistState(state);
   return event;
 }
 
